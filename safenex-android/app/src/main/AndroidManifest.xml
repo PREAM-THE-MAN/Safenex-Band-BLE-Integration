@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Legacy Bluetooth Permissions (API <= 30) -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADMIN"
+        android:maxSdkVersion="30" />
+    <!-- Location Permissions for Live GPS Tracking -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <!-- Emergency Dispatch & Guardian Contact Permissions -->
+    <uses-permission android:name="android.permission.SEND_SMS" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+
+    <!-- Modern Bluetooth Permissions (API >= 31, Android 12+) -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_SCAN"
+        android:usesPermissionFlags="neverForLocation"
+        tools:targetApi="s" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_CONNECT"
+        tools:targetApi="s" />
+
+    <!-- Internet & Network Permissions for Supabase Cloud Database -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Audio Evidence Recording Permission -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <!-- Camera Evidence Snapshots Permission -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- Auto-Wake & Lockscreen Launch Permissions -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
+    <!-- General App Permissions -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <!-- Hardware Features -->
+    <uses-feature
+        android:name="android.hardware.bluetooth_le"
+        android:required="true" />
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.autofocus"
+        android:required="false" />
+
+    <!-- Exact Alarm Permissions for Scheduled Commute Safety Mode -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+
+    <queries>
+        <package android:name="com.whatsapp" />
+        <package android:name="com.whatsapp.w4b" />
+    </queries>
+
+    <application
+        android:name=".SafenexApplication"
+        android:allowBackup="true"
+        android:icon="@android:drawable/ic_dialog_alert"
+        android:label="@string/app_name"
+        android:roundIcon="@android:drawable/ic_dialog_alert"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Safenex">
+
+        <!-- Google Maps SDK API Key -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyByC7_EfClKMEGaeVQI5Q5b4BWfL2zVac4" />
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:showOnLockScreen="true"
+            android:theme="@style/Theme.Safenex"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Scheduled Commute Safety Check-In Receiver -->
+        <receiver
+            android:name=".data.schedule.ScheduleBroadcastReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.safenex.app.ACTION_SCHEDULE_CHECK_IN" />
+                <action android:name="com.safenex.app.ACTION_ARRIVE_SAFELY" />
+                <action android:name="com.safenex.app.ACTION_EXTEND_TIME" />
+                <action android:name="com.safenex.app.ACTION_TRIGGER_EMERGENCY" />
+                <action android:name="com.safenex.app.ACTION_TIMEOUT_EMERGENCY" />
+            </intent-filter>
+        </receiver>
+    </application>
+
+</manifest>

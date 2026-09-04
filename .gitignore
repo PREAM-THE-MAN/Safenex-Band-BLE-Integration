@@ -1,0 +1,17 @@
+﻿# Android & Gradle
+**/.gradle/
+**/build/
+**/app/build/
+**/*.iml
+**/.idea/
+**/local.properties
+**/.cxx/
+**/captures/
+**/*.apk.sha1
+**/*.apk.sha256
+
+# Temporary & OS files
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.log

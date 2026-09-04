@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SAFENEX - Personal Emergency Safety System</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FF1744'><path d='M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z'/></svg>">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            safenexDark: '#0A0E17',
+            safenexSurface: '#111827',
+            safenexSurfaceVar: '#1F2937',
+            safenexBorder: '#374151',
+            cyanAccent: '#00E5FF',
+            emergencyRed: '#FF1744',
+            safetyGreen: '#00E676',
+            warningOrange: '#FF9100'
+          },
+          animation: {
+            'pulse-fast': 'pulse 0.8s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'ping-slow': 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite',
+            'strobe': 'strobe 0.1s infinite'
+          },
+          keyframes: {
+            strobe: {
+              '0%, 100%': { opacity: '1' },
+              '50%': { opacity: '0.05' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #0A0E17;
+      color: #F3F4F6;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #0A0E17; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
+    .glow-red { box-shadow: 0 0 35px rgba(255, 23, 68, 0.65); }
+    .glow-cyan { box-shadow: 0 0 25px rgba(0, 229, 255, 0.4); }
+  </style>
+  <!-- Google Maps SDK -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyByC7_EfClKMEGaeVQI5Q5b4BWfL2zVac4&libraries=geometry"></script>
+</head>
+<body class="min-h-screen bg-safenexDark text-gray-100 flex justify-center selection:bg-cyanAccent selection:text-black">
+
+  <!-- Mobile Viewport Container (App Frame) -->
+  <div id="appContainer" class="w-full max-w-md min-h-screen bg-safenexDark border-x border-safenexBorder/40 flex flex-col relative pb-10 shadow-2xl">
+
+    <!-- Strobe Flash Overlay (During Active Emergency) -->
+    <div id="strobeOverlay" class="fixed inset-0 bg-red-600 pointer-events-none z-50 opacity-0 transition-opacity"></div>
+
+    <!-- MAIN HOME SCREEN -->
+    <div id="homeScreen" class="flex flex-col flex-1 p-5 space-y-4">
+
+      <!-- Header -->
+      <header class="flex items-center justify-between pt-2 pb-1 border-b border-safenexBorder/40">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyanAccent/20 to-cyanAccent/5 border border-cyanAccent/40 flex items-center justify-center">
+            <svg class="w-5 h-5 text-cyanAccent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-lg font-black tracking-wider text-white flex items-center gap-1.5">
+              SAFENEX <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-cyanAccent/10 text-cyanAccent border border-cyanAccent/30">WEB</span>
+            </h1>
+            <p class="text-[10px] text-gray-400 font-medium">Tactical Safety & Emergency Response</p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-2">
+          <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-safetyGreen/10 text-safetyGreen border border-safetyGreen/30">
+            <span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-safetyGreen animate-pulse"></span>
+            STANDBY
+          </span>
+        </div>
+      </header>
+
+      <!-- 🚨 TOP BRIGHT RED ROUND SOS EMERGENCY BUTTON 🚨 -->
+      <div class="flex flex-col items-center justify-center pt-2 pb-1">
+        <div class="relative flex items-center justify-center cursor-pointer group" onclick="triggerEmergency('BUTTON')">
+          <!-- Outer Pulsing Glow Rings -->
+          <div class="absolute w-44 h-44 rounded-full bg-emergencyRed/15 animate-ping-slow"></div>
+          <div class="absolute w-40 h-40 rounded-full bg-emergencyRed/25 border border-emergencyRed/40 animate-pulse-fast"></div>
+
+          <!-- Central Core Bright Red Round Button -->
+          <button id="sosMainBtn" class="relative w-32 h-32 rounded-full bg-gradient-to-b from-[#FF334B] via-[#E50000] to-[#990000] border-4 border-[#FFA4B2] shadow-2xl glow-red flex flex-col items-center justify-center active:scale-95 transition-transform duration-100">
+            <svg class="w-7 h-7 text-white mb-0.5 drop-shadow" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/>
+            </svg>
+            <span class="text-3xl font-black tracking-widest text-white drop-shadow-md">SOS</span>
+            <span class="text-[8px] font-extrabold tracking-wider text-white/90 uppercase">Press For Help</span>
+          </button>
+        </div>
+
+        <div class="mt-3 flex items-center space-x-1.5 text-emergencyRed font-bold text-xs tracking-wider">
+          <span class="w-2 h-2 rounded-full bg-emergencyRed animate-ping"></span>
+          <span>EMERGENCY SOS • TAP TO ACTIVATE</span>
+        </div>
+        <p class="text-[10px] text-gray-400 mt-0.5 text-center">Activates 1200Hz siren, strobe, GPS cloud stream, video evidence & guardian alerts</p>
+      </div>
+
+      <!-- COMMUTE SAFETY MODE CARD (Dead-Man's Switch) -->
+      <div class="bg-safenexSurface border border-safenexBorder rounded-2xl p-4 shadow-lg">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div id="scheduleIconBox" class="w-9 h-9 rounded-full bg-cyanAccent/15 flex items-center justify-center text-cyanAccent">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-white">Commute Safety Mode</h3>
+              <p id="scheduleSubtext" class="text-[11px] text-gray-400">Dead-man's arrival safety switch</p>
+            </div>
+          </div>
+          <span id="scheduleStatusChip" class="px-2 py-0.5 text-[10px] font-bold rounded bg-safenexBorder/40 text-gray-400">STANDBY</span>
+        </div>
+
+        <div id="scheduleActivePanel" class="hidden mt-3 pt-3 border-t border-safenexBorder/50 space-y-3">
+          <div class="bg-safenexSurfaceVar/80 rounded-xl p-3 flex justify-between items-center">
+            <div>
+              <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Destination</span>
+              <p id="activeDestLabel" class="text-sm font-black text-white">Home</p>
+              <span id="activeExpectedLabel" class="text-[11px] text-cyanAccent">Expected by 8:00 PM</span>
+            </div>
+            <div class="text-right">
+              <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Remaining</span>
+              <p id="activeRemainingTimer" class="text-xl font-black text-cyanAccent">45m 00s</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2">
+            <button onclick="confirmSafeArrival()" class="col-span-1 bg-safetyGreen text-safenexDark text-xs font-black py-2.5 rounded-xl flex items-center justify-center space-x-1 hover:brightness-110 active:scale-95">
+              <span>ARRIVED</span>
+            </button>
+            <button onclick="extendSchedule(15)" class="col-span-1 border border-cyanAccent text-cyanAccent text-xs font-bold py-2.5 rounded-xl hover:bg-cyanAccent/10 active:scale-95">
+              +15 MINS
+            </button>
+            <button onclick="cancelSchedule()" class="col-span-1 border border-safenexBorder text-gray-400 text-xs font-bold py-2.5 rounded-xl hover:bg-safenexBorder/20 active:scale-95">
+              CANCEL
+            </button>
+          </div>
+          <button onclick="simulateCheckIn()" class="w-full text-center text-[10px] text-gray-400 hover:text-cyanAccent pt-1">
+            ⚡ Simulate Arrival Exceeded (Test 60s Check-In Alert)
+          </button>
+        </div>
+
+        <div id="scheduleIdlePanel" class="mt-3 pt-2">
+          <p class="text-[11px] text-gray-400 mb-3">Set expected commute arrival time. If not checked in within 60s of arrival, Emergency SOS triggers automatically!</p>
+          <button onclick="openScheduleModal()" class="w-full py-2.5 rounded-xl bg-cyanAccent text-safenexDark font-black text-xs tracking-wider flex items-center justify-center space-x-2 hover:brightness-110 active:scale-95">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>SET COMMUTE SAFETY SCHEDULE</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- DITTU AI VOICE ASSISTANT CARD -->
+      <div class="bg-safenexSurface border border-safenexBorder rounded-2xl p-4 shadow-lg space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div id="dittuMicBox" class="w-9 h-9 rounded-full bg-safenexSurfaceVar border border-safenexBorder flex items-center justify-center text-gray-400">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-white">DITTU Voice Assistant</h3>
+              <p id="dittuStatusText" class="text-[11px] text-gray-400">Speech & Command Engine</p>
+            </div>
+          </div>
+          <button id="dittuToggleBtn" onclick="toggleDittuVoice()" class="text-xs px-2.5 py-1 rounded-lg border border-cyanAccent/40 text-cyanAccent bg-cyanAccent/10 font-bold">
+            VOICE WAKE ON
+          </button>
+        </div>
+
+        <button onclick="startDittuManual()" class="w-full py-2.5 rounded-xl bg-safenexSurfaceVar border border-safenexBorder text-gray-200 text-xs font-bold flex items-center justify-center space-x-2 hover:border-cyanAccent hover:text-cyanAccent active:scale-95 transition-colors">
+          <span>🎙️ TAP TO TALK TO DITTU</span>
+        </button>
+
+        <div id="dittuTranscriptBox" class="hidden bg-safenexDark/80 rounded-xl p-2.5 border border-safenexBorder/50 text-[11px] space-y-1">
+          <p id="dittuHeardText" class="text-cyanAccent font-semibold"></p>
+          <p id="dittuReplyText" class="text-gray-300"></p>
+        </div>
+
+        <div class="flex flex-wrap gap-1.5 pt-1">
+          <span class="text-[9px] px-2 py-1 rounded-md bg-safenexSurfaceVar border border-safenexBorder text-gray-400 font-mono">"HELP!"</span>
+          <span class="text-[9px] px-2 py-1 rounded-md bg-safenexSurfaceVar border border-safenexBorder text-gray-400 font-mono">"Call Guardian"</span>
+          <span class="text-[9px] px-2 py-1 rounded-md bg-safenexSurfaceVar border border-safenexBorder text-gray-400 font-mono">"Where am I?"</span>
+          <span class="text-[9px] px-2 py-1 rounded-md bg-safenexSurfaceVar border border-safenexBorder text-gray-400 font-mono">"Share location to guardian"</span>
+        </div>
+      </div>
+
+      <!-- GUARDIANS MANAGEMENT CARD -->
+      <div class="bg-safenexSurface border border-safenexBorder rounded-2xl p-4 shadow-lg space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2.5">
+            <div class="w-8 h-8 rounded-full bg-cyanAccent/15 flex items-center justify-center text-cyanAccent">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+            </div>
+            <h3 class="text-sm font-bold text-white">Emergency Guardians</h3>
+          </div>
+          <button onclick="openAddGuardianModal()" class="w-7 h-7 rounded-full bg-cyanAccent text-safenexDark font-black flex items-center justify-center hover:scale-105 active:scale-95">
+            +
+          </button>
+        </div>
+
+        <div id="guardiansList" class="space-y-2">
+          <!-- Dynamically Rendered Guardians -->
+        </div>
+      </div>
+
+      <!-- TEST SIMULATION CONTROLS -->
+      <div class="bg-safenexSurfaceVar/40 border border-safenexBorder/60 rounded-2xl p-3.5 space-y-2 text-center">
+        <span class="text-[10px] font-extrabold tracking-wider text-gray-400 uppercase">Hardware & SOS Test Simulation</span>
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button onclick="triggerEmergency('BUTTON')" class="py-2 px-3 rounded-xl border border-emergencyRed/50 bg-emergencyRed/10 text-emergencyRed text-xs font-bold flex items-center justify-center space-x-1.5 hover:bg-emergencyRed/20">
+            <span>⚡ SOS Button</span>
+          </button>
+          <button onclick="triggerEmergency('SHAKE')" class="py-2 px-3 rounded-xl border border-cyanAccent/50 bg-cyanAccent/10 text-cyanAccent text-xs font-bold flex items-center justify-center space-x-1.5 hover:bg-cyanAccent/20">
+            <span>📳 Shake Sensor</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================== -->
+    <!-- 🚨 EMERGENCY ACTIVE SCREEN (LOCKED UNTIL PIN) 🚨 -->
+    <!-- ============================================== -->
+    <div id="emergencyScreen" class="hidden flex-col flex-1 p-5 space-y-4 bg-safenexDark min-h-screen">
+      
+      <!-- Emergency Header Alert -->
+      <div class="rounded-2xl p-4 bg-gradient-to-r from-emergencyRed/20 via-emergencyRed/30 to-emergencyRed/10 border-2 border-emergencyRed flex items-center justify-between shadow-2xl glow-red">
+        <div class="flex items-center space-x-3">
+          <span class="w-3 h-3 rounded-full bg-emergencyRed animate-ping"></span>
+          <div>
+            <h2 class="text-base font-black text-white tracking-wider flex items-center gap-2">
+              EMERGENCY ACTIVE
+            </h2>
+            <p id="emergencyTriggerSource" class="text-xs text-emergencyRed font-bold">Trigger: Band SOS Button</p>
+          </div>
+        </div>
+        <span class="px-2.5 py-1 text-[10px] font-black tracking-widest bg-emergencyRed text-white rounded-lg">
+          LOCKED
+        </span>
+      </div>
+
+      <!-- Tactical Deterrent Status Card (Non-stop siren & strobe) -->
+      <div class="bg-safenexSurface border border-emergencyRed/40 rounded-2xl p-3.5 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-9 h-9 rounded-full bg-emergencyRed/20 flex items-center justify-center text-emergencyRed animate-pulse">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
+            </svg>
+          </div>
+          <div>
+            <p class="text-xs font-bold text-white">Tactical Siren + Strobe LED</p>
+            <p class="text-[10px] text-emergencyRed font-semibold">1200Hz Wail Blaring • Power-lock Active</p>
+          </div>
+        </div>
+        <span class="text-[10px] font-black px-2 py-1 rounded bg-emergencyRed/20 text-emergencyRed border border-emergencyRed/40">
+          PIN REQUIRED
+        </span>
+      </div>
+
+      <!-- Live Google Maps Card -->
+      <div class="bg-safenexSurface border border-safenexBorder rounded-2xl p-3.5 space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <svg class="w-4 h-4 text-cyanAccent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+            </svg>
+            <span class="text-xs font-bold text-white">Live Satellite Google Map</span>
+          </div>
+          <span id="gpsAccuracyBadge" class="text-[9px] font-bold px-2 py-0.5 rounded bg-safetyGreen/15 text-safetyGreen">
+            ACCURATE ±4m
+          </span>
+        </div>
+
+        <!-- Embedded Interactive Google Map Container -->
+        <div id="map" class="w-full h-48 rounded-xl bg-safenexSurfaceVar border border-safenexBorder/50 overflow-hidden"></div>
+
+        <div class="space-y-1 text-xs">
+          <p id="liveAddressText" class="font-bold text-white">Acquiring current address...</p>
+          <p id="liveCoordsText" class="text-[11px] text-gray-400 font-mono">13.0827° N, 80.2707° E</p>
+        </div>
+
+        <!-- WhatsApp Emergency Share Button -->
+        <button onclick="shareWhatsAppLocation()" class="w-full py-3 rounded-xl bg-[#25D366] text-white font-black text-xs tracking-wider flex items-center justify-center space-x-2 shadow-lg hover:brightness-110 active:scale-95">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.667-.698c.969.586 1.83.847 2.793.847 3.182 0 5.768-2.587 5.768-5.766 0-3.18-2.586-5.768-5.768-5.768zm-1.084 9.17c-.156.262-.524.394-.789.288-.344-.138-1.454-.536-2.149-1.74-.534-.925-.034-1.391.246-1.672.164-.164.359-.205.479-.205.12 0 .239.006.345.012.112.006.263-.042.411.314.157.378.535 1.306.582 1.402.047.096.079.208.016.333-.063.125-.094.204-.188.314-.094.11-.198.246-.282.33-.095.095-.194.198-.083.388.111.19.493.813 1.057 1.316.726.647 1.339.848 1.53.943.19.095.302.079.414-.047.112-.127.478-.557.605-.747.128-.19.255-.159.431-.095.175.063 1.114.525 1.305.621.191.095.318.143.366.223.048.079.048.461-.111.724z"/>
+          </svg>
+          <span>SHARE LIVE LOCATION ON WHATSAPP</span>
+        </button>
+
+        <!-- Direct 1-Tap Guardian Call Button -->
+        <button onclick="callGuardian()" class="w-full py-2.5 rounded-xl border border-cyanAccent text-cyanAccent font-bold text-xs flex items-center justify-center space-x-2 hover:bg-cyanAccent/10">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+          </svg>
+          <span id="callGuardianLabel">CALL PRIMARY GUARDIAN</span>
+        </button>
+      </div>
+
+      <!-- Video Evidence & Dual Snapshot Viewfinder -->
+      <div class="bg-safenexSurface border border-safenexBorder rounded-2xl p-3.5 space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-white flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-emergencyRed animate-ping"></span>
+            Video Evidence Recording
+          </span>
+          <span id="recTimerText" class="text-[10px] font-mono font-bold text-emergencyRed">REC 00:00</span>
+        </div>
+        <div class="relative w-full h-36 rounded-xl bg-black overflow-hidden flex items-center justify-center">
+          <video id="webcamVideo" class="w-full h-full object-cover" autoplay playsinline muted></video>
+          <div class="absolute top-2 left-2 px-2 py-0.5 rounded bg-red-600 text-white text-[9px] font-black tracking-widest uppercase">
+            EVIDENCE BLACKBOX
+          </div>
+        </div>
+      </div>
+
+      <!-- Disarm Safety Button -->
+      <button onclick="openPinModal()" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-safetyGreen to-emerald-500 text-safenexDark font-black text-sm tracking-wider flex items-center justify-center space-x-2 shadow-xl hover:brightness-110 active:scale-95">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+        </svg>
+        <span>VERIFY SAFETY (DISARM WITH PIN)</span>
+      </button>
+
+    </div>
+
+    <!-- ============================================== -->
+    <!-- MODALS & DIALOGS -->
+    <!-- ============================================== -->
+
+    <!-- 1. 60-Second Dead-Man's Check-In Alert Modal -->
+    <div id="checkInModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-5 hidden">
+      <div class="w-full max-w-sm bg-safenexSurface border-2 border-warningOrange rounded-3xl p-5 text-center space-y-4 shadow-2xl">
+        <div class="w-16 h-16 rounded-full bg-warningOrange/20 border-2 border-warningOrange flex items-center justify-center mx-auto text-warningOrange animate-bounce">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-black text-warningOrange tracking-wider uppercase">COMMUTE CHECK-IN</h3>
+          <p id="checkInModalDest" class="text-xs text-gray-300">Expected at Home by 8:00 PM</p>
+        </div>
+
+        <div class="py-3 px-6 rounded-2xl bg-emergencyRed/15 border border-emergencyRed/40 inline-block">
+          <span id="checkInCountdownText" class="text-4xl font-black text-emergencyRed font-mono">00:59</span>
+          <p class="text-[9px] font-bold text-emergencyRed uppercase tracking-wider">Auto-Emergency Trigger</p>
+        </div>
+
+        <p class="text-xs text-gray-400">Did you arrive safely? If you don't respond before 60 seconds, full emergency sirens and guardian alerts will activate!</p>
+
+        <div class="space-y-2 pt-2">
+          <button onclick="confirmSafeArrival()" class="w-full py-3 rounded-xl bg-safetyGreen text-safenexDark font-black text-xs tracking-wider shadow hover:brightness-110 active:scale-95">
+            ✅ I'VE ARRIVED SAFELY
+          </button>
+          <button onclick="extendSchedule(15)" class="w-full py-2.5 rounded-xl border border-cyanAccent text-cyanAccent font-bold text-xs hover:bg-cyanAccent/10 active:scale-95">
+            ⏳ EXTEND +15 MINUTES
+          </button>
+          <button onclick="triggerEmergency('SCHEDULE_OVERDUE')" class="w-full py-2 rounded-xl bg-emergencyRed text-white font-bold text-xs hover:brightness-110 active:scale-95">
+            🚨 TRIGGER SOS NOW
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Security PIN Disarm Keypad Modal -->
+    <div id="pinModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-5 hidden">
+      <div class="w-full max-w-xs bg-safenexSurface border border-safenexBorder rounded-3xl p-5 text-center space-y-4 shadow-2xl">
+        <div class="w-12 h-12 rounded-full bg-safetyGreen/15 mx-auto flex items-center justify-center text-safetyGreen">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+          </svg>
+        </div>
+
+        <div>
+          <h4 class="text-base font-black text-white">ENTER SAFETY PIN</h4>
+          <p class="text-[11px] text-gray-400">Default verification PIN: <strong class="text-cyanAccent font-mono">1234</strong></p>
+        </div>
+
+        <!-- Masked Dots -->
+        <div id="pinDots" class="flex justify-center space-x-3 py-2">
+          <span class="w-4 h-4 rounded-full border border-gray-500"></span>
+          <span class="w-4 h-4 rounded-full border border-gray-500"></span>
+          <span class="w-4 h-4 rounded-full border border-gray-500"></span>
+          <span class="w-4 h-4 rounded-full border border-gray-500"></span>
+        </div>
+        <p id="pinErrorText" class="text-xs text-emergencyRed font-bold hidden">INCORRECT PIN</p>
+
+        <!-- Numeric Keypad -->
+        <div class="grid grid-cols-3 gap-2 pt-1">
+          <button onclick="enterDigit('1')" class="h-12 rounded-xl bg-safenexSurfaceVar text-white font-bold text-lg hover:bg-safenexBorder">1</button>
+          <button onclick="enterDigit('2')" class="h-12 rounded-xl bg-safenexSurfaceVar text-white font-bold text-lg hover:bg-safenexBorder">2</button>
+          <button onclick="enterDigit('3')" class="h-12 rounded-xl bg-safenexSurfaceVar text-white font-bold text-lg hover:bg-safenexBorder">3</button>
+          <button onclick="enterDigit('4')" class="h-12 rounded-xl bg-safenexSurfaceVar text-white font-bold text-lg hover:bg-safenexBorder">4</button>
+          <button onclick="enterDigit('5')" class="h-12 rounded-xl bg-safenexSurfaceVar text-white font-bold text-lg hover:bg-safenexBorder">5</button>
+          <button onclick="enterDigit('6')" class="h-12 rounded-xl bg-safenexSurfaceVar text-white font-bold text-lg hover:bg-safenexBorder">6</button>
+          <button onclick="enterDigit('7')" class="h-12 rounded-xl bg-safenexSurfaceVar text-white font-bold text-lg hover:bg-safenexBorder">7</button>
+          <button onclick="enterDigit('8')" class="h-12 rounded-xl bg-safenexSurfaceVar text-white font-bold text-lg hover:bg-safenexBorder">8</button>
+          <button onclick="enterDigit('9')" class="h-12 rounded-xl bg-safenexSurfaceVar text-white font-bold text-lg hover:bg-safenexBorder">9</button>
+          <button onclick="clearPin()" class="h-12 rounded-xl bg-safenexSurfaceVar text-gray-400 font-bold text-xs hover:bg-safenexBorder">CLR</button>
+          <button onclick="enterDigit('0')" class="h-12 rounded-xl bg-safenexSurfaceVar text-white font-bold text-lg hover:bg-safenexBorder">0</button>
+          <button onclick="deleteDigit()" class="h-12 rounded-xl bg-safenexSurfaceVar text-gray-400 font-bold text-xs hover:bg-safenexBorder">⌫</button>
+        </div>
+
+        <button onclick="closePinModal()" class="w-full text-center text-xs text-gray-400 hover:text-white pt-2">
+          Return to Emergency
+        </button>
+      </div>
+    </div>
+
+    <!-- 3. Schedule Configuration Modal -->
+    <div id="scheduleConfigModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-5 hidden">
+      <div class="w-full max-w-sm bg-safenexSurface border border-safenexBorder rounded-3xl p-5 space-y-4 shadow-2xl">
+        <h4 class="text-base font-bold text-white">Set Commute Safety Schedule</h4>
+
+        <div class="space-y-1 text-left">
+          <label class="text-xs font-semibold text-gray-400">Destination</label>
+          <input id="destInput" type="text" value="Home" placeholder="e.g. Home, Office, Gym" class="w-full px-3 py-2 rounded-xl bg-safenexSurfaceVar border border-safenexBorder text-sm text-white focus:outline-none focus:border-cyanAccent">
+          <div class="flex gap-1.5 pt-1">
+            <button onclick="setDest('Home')" class="text-[10px] px-2 py-0.5 rounded bg-safenexSurfaceVar text-gray-300 hover:text-cyanAccent">Home</button>
+            <button onclick="setDest('Work')" class="text-[10px] px-2 py-0.5 rounded bg-safenexSurfaceVar text-gray-300 hover:text-cyanAccent">Work</button>
+            <button onclick="setDest('Gym')" class="text-[10px] px-2 py-0.5 rounded bg-safenexSurfaceVar text-gray-300 hover:text-cyanAccent">Gym</button>
+            <button onclick="setDest('College')" class="text-[10px] px-2 py-0.5 rounded bg-safenexSurfaceVar text-gray-300 hover:text-cyanAccent">College</button>
+          </div>
+        </div>
+
+        <div class="space-y-1 text-left">
+          <label class="text-xs font-semibold text-gray-400">Expected Arrival Time</label>
+          <div class="grid grid-cols-3 gap-1.5">
+            <button onclick="setPreset(15)" class="preset-btn py-2 text-xs rounded-lg border border-safenexBorder bg-safenexSurfaceVar text-gray-300 font-medium">15m (Test)</button>
+            <button onclick="setPreset(30)" class="preset-btn py-2 text-xs rounded-lg border border-safenexBorder bg-safenexSurfaceVar text-gray-300 font-medium">30 Mins</button>
+            <button onclick="setPreset(60)" class="preset-btn py-2 text-xs rounded-lg border border-cyanAccent bg-cyanAccent/15 text-cyanAccent font-bold">1 Hour</button>
+            <button onclick="setPreset(120)" class="preset-btn py-2 text-xs rounded-lg border border-safenexBorder bg-safenexSurfaceVar text-gray-300 font-medium">2 Hours</button>
+            <button onclick="setPreset(240)" class="preset-btn py-2 text-xs rounded-lg border border-safenexBorder bg-safenexSurfaceVar text-gray-300 font-medium">4 Hours</button>
+            <button onclick="setPreset(calculateMinutesTo8PM())" class="preset-btn py-2 text-xs rounded-lg border border-safenexBorder bg-safenexSurfaceVar text-gray-300 font-medium">8:00 PM</button>
+          </div>
+          <p id="scheduleCalculatedLabel" class="text-xs font-bold text-cyanAccent pt-1">Expected: in 60 mins</p>
+        </div>
+
+        <div class="flex items-center space-x-2 text-left pt-1">
+          <input id="notifyArrivalCheck" type="checkbox" checked class="rounded bg-safenexDark border-safenexBorder text-safetyGreen focus:ring-0">
+          <label for="notifyArrivalCheck" class="text-xs text-gray-300">Send Safe Arrival SMS to Guardian</label>
+        </div>
+
+        <div class="flex space-x-2 pt-2">
+          <button onclick="closeScheduleModal()" class="w-1/2 py-2.5 rounded-xl border border-safenexBorder text-gray-400 font-bold text-xs">CANCEL</button>
+          <button onclick="saveAndStartSchedule()" class="w-1/2 py-2.5 rounded-xl bg-cyanAccent text-safenexDark font-black text-xs">START</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Add Guardian Modal -->
+    <div id="addGuardianModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-5 hidden">
+      <div class="w-full max-w-sm bg-safenexSurface border border-safenexBorder rounded-3xl p-5 space-y-3 shadow-2xl">
+        <h4 class="text-base font-bold text-white">Add Emergency Guardian</h4>
+        <div class="space-y-2 text-left text-xs">
+          <div>
+            <label class="text-gray-400">Name</label>
+            <input id="gNameInput" type="text" placeholder="e.g. Sarah Connor" class="w-full px-3 py-2 mt-1 rounded-xl bg-safenexSurfaceVar border border-safenexBorder text-white focus:outline-none focus:border-cyanAccent">
+          </div>
+          <div>
+            <label class="text-gray-400">Phone Number (+CountryCode)</label>
+            <input id="gPhoneInput" type="tel" placeholder="+1234567890" class="w-full px-3 py-2 mt-1 rounded-xl bg-safenexSurfaceVar border border-safenexBorder text-white focus:outline-none focus:border-cyanAccent">
+          </div>
+          <div>
+            <label class="text-gray-400">Relationship</label>
+            <input id="gRelInput" type="text" placeholder="e.g. Parent, Spouse" class="w-full px-3 py-2 mt-1 rounded-xl bg-safenexSurfaceVar border border-safenexBorder text-white focus:outline-none focus:border-cyanAccent">
+          </div>
+          <div class="flex items-center space-x-2 pt-1">
+            <input id="gPrimaryInput" type="checkbox" class="rounded text-cyanAccent">
+            <label for="gPrimaryInput" class="text-gray-300">Set as Primary Guardian (1-Tap Call & WhatsApp)</label>
+          </div>
+        </div>
+        <div class="flex space-x-2 pt-2">
+          <button onclick="closeAddGuardianModal()" class="w-1/2 py-2.5 rounded-xl border border-safenexBorder text-gray-400 font-bold text-xs">CANCEL</button>
+          <button onclick="saveNewGuardian()" class="w-1/2 py-2.5 rounded-xl bg-cyanAccent text-safenexDark font-black text-xs">SAVE</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- APPLICATION LOGIC SCRIPT -->
+  <script>
+    // ==========================================
+    // STATE & CONFIG
+    // ==========================================
+    const GOOGLE_MAPS_KEY = "AIzaSyByC7_EfClKMEGaeVQI5Q5b4BWfL2zVac4";
+    const SUPABASE_URL = "https://vrxyxwzvcinytsorauau.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZyeHl4d3p2Y2lueXRzb3JhdWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc5ODE4MDMsImV4cCI6MjEwMzU1NzgwM30.r0CbtU3H1Spx2CNQm5P3HWvhuzJApQG_rvFotq28f7o";
+
+    let emergencyActive = false;
+    let audioCtx = null;
+    let sirenOsc = null;
+    let sirenInterval = null;
+    let strobeInterval = null;
+    let currentPin = "";
+    let map = null;
+    let marker = null;
+    let accuracyCircle = null;
+    let currentCoords = { lat: 13.0827, lng: 80.2707, accuracy: 5 };
+    let currentAddress = "Acquiring satellite GPS position...";
+    let mediaStream = null;
+    let videoTimer = null;
+    let videoSeconds = 0;
+
+    // Guardians
+    let guardians = JSON.parse(localStorage.getItem('safenex_guardians') || 'null') || [
+      { id: '1', name: 'Primary Guardian', phone: '+919876543210', relation: 'Family', isPrimary: true }
+    ];
+
+    // Commute Schedule
+    let activeSchedule = JSON.parse(localStorage.getItem('safenex_active_schedule') || 'null');
+    let scheduleTicker = null;
+    let checkInInterval = null;
+    let checkInSecondsLeft = 60;
+    let selectedPresetMinutes = 60;
+
+    // Speech
+    let recognition = null;
+    let isVoiceWakeEnabled = true;
+
+    // ==========================================
+    // INITIALIZATION
+    // ==========================================
+    window.addEventListener('DOMContentLoaded', () => {
+      renderGuardians();
+      initScheduleTicker();
+      initSpeechRecognition();
+      startLocationWatcher();
+    });
+
+    // ==========================================
+    // GUARDIANS MANAGEMENT
+    // ==========================================
+    function renderGuardians() {
+      const container = document.getElementById('guardiansList');
+      container.innerHTML = '';
+
+      guardians.forEach(g => {
+        const item = document.createElement('div');
+        item.className = "flex items-center justify-between p-2.5 rounded-xl bg-safenexSurfaceVar/80 border border-safenexBorder/40";
+        item.innerHTML = `
+          <div class="flex items-center space-x-2.5">
+            <div class="w-8 h-8 rounded-full ${g.isPrimary ? 'bg-cyanAccent/20 text-cyanAccent' : 'bg-safenexBorder/30 text-gray-400'} flex items-center justify-center font-bold text-xs">
+              ${g.name.charAt(0)}
+            </div>
+            <div>
+              <p class="text-xs font-bold text-white flex items-center gap-1.5">
+                ${g.name}
+                ${g.isPrimary ? '<span class="text-[9px] px-1.5 py-0.2 rounded bg-cyanAccent/15 text-cyanAccent font-bold">PRIMARY</span>' : ''}
+              </p>
+              <p class="text-[10px] text-gray-400 font-mono">${g.phone} • ${g.relation}</p>
+            </div>
+          </div>
+          <div class="flex items-center space-x-1">
+            ${!g.isPrimary ? `<button onclick="setPrimaryGuardian('${g.id}')" title="Set Primary" class="p-1 text-gray-400 hover:text-cyanAccent text-xs">⭐</button>` : ''}
+            <button onclick="deleteGuardian('${g.id}')" title="Delete" class="p-1 text-gray-400 hover:text-emergencyRed text-xs">✕</button>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+
+      const primary = getPrimaryGuardian();
+      if (primary) {
+        document.getElementById('callGuardianLabel').innerText = `CALL ${primary.name.toUpperCase()} (${primary.phone})`;
+      }
+    }
+
+    function getPrimaryGuardian() {
+      return guardians.find(g => g.isPrimary) || guardians[0];
+    }
+
+    function setPrimaryGuardian(id) {
+      guardians.forEach(g => g.isPrimary = (g.id === id));
+      localStorage.setItem('safenex_guardians', JSON.stringify(guardians));
+      renderGuardians();
+    }
+
+    function deleteGuardian(id) {
+      guardians = guardians.filter(g => g.id !== id);
+      if (guardians.length > 0 && !guardians.some(g => g.isPrimary)) {
+        guardians[0].isPrimary = true;
+      }
+      localStorage.setItem('safenex_guardians', JSON.stringify(guardians));
+      renderGuardians();
+    }
+
+    function openAddGuardianModal() {
+      document.getElementById('addGuardianModal').classList.remove('hidden');
+    }
+    function closeAddGuardianModal() {
+      document.getElementById('addGuardianModal').classList.add('hidden');
+    }
+    function saveNewGuardian() {
+      const name = document.getElementById('gNameInput').value.trim();
+      const phone = document.getElementById('gPhoneInput').value.trim();
+      const relation = document.getElementById('gRelInput').value.trim() || 'Contact';
+      const isPrimary = document.getElementById('gPrimaryInput').checked;
+
+      if (!name || !phone) { alert('Name and phone number required'); return; }
+
+      const newG = { id: Date.now().toString(), name, phone, relation, isPrimary };
+      if (isPrimary) { guardians.forEach(g => g.isPrimary = false); }
+      guardians.push(newG);
+      localStorage.setItem('safenex_guardians', JSON.stringify(guardians));
+      renderGuardians();
+      closeAddGuardianModal();
+    }
+
+    // ==========================================
+    // COMMUTE SAFETY SCHEDULE MODE
+    // ==========================================
+    function initScheduleTicker() {
+      if (scheduleTicker) clearInterval(scheduleTicker);
+      updateScheduleUI();
+
+      scheduleTicker = setInterval(() => {
+        if (!activeSchedule) return;
+        const now = Date.now();
+        const diff = activeSchedule.arrivalEpoch - now;
+
+        if (diff <= 0) {
+          // Arrival time exceeded!
+          if (!document.getElementById('checkInModal').classList.contains('active')) {
+            showCheckInAlert();
+          }
+        } else {
+          updateScheduleUI();
+        }
+      }, 1000);
+    }
+
+    function updateScheduleUI() {
+      const idlePanel = document.getElementById('scheduleIdlePanel');
+      const activePanel = document.getElementById('scheduleActivePanel');
+      const chip = document.getElementById('scheduleStatusChip');
+      const subtext = document.getElementById('scheduleSubtext');
+
+      if (activeSchedule) {
+        idlePanel.classList.add('hidden');
+        activePanel.classList.remove('hidden');
+        chip.innerText = "MONITORING";
+        chip.className = "px-2 py-0.5 text-[10px] font-bold rounded bg-cyanAccent/15 text-cyanAccent";
+        subtext.innerText = "Active commute guardian tracking";
+
+        document.getElementById('activeDestLabel').innerText = activeSchedule.destination;
+        const arrDate = new Date(activeSchedule.arrivalEpoch);
+        document.getElementById('activeExpectedLabel').innerText = `Expected by ${arrDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+
+        const diffSecs = Math.max(0, Math.floor((activeSchedule.arrivalEpoch - Date.now()) / 1000));
+        const hours = Math.floor(diffSecs / 3600);
+        const mins = Math.floor((diffSecs % 3600) / 60);
+        const secs = diffSecs % 60;
+        document.getElementById('activeRemainingTimer').innerText = hours > 0 ? `${hours}h ${mins}m` : `${mins}m ${secs}s`;
+      } else {
+        idlePanel.classList.remove('hidden');
+        activePanel.classList.add('hidden');
+        chip.innerText = "STANDBY";
+        chip.className = "px-2 py-0.5 text-[10px] font-bold rounded bg-safenexBorder/40 text-gray-400";
+        subtext.innerText = "Dead-man's arrival safety switch";
+      }
+    }
+
+    function openScheduleModal() {
+      document.getElementById('scheduleConfigModal').classList.remove('hidden');
+    }
+    function closeScheduleModal() {
+      document.getElementById('scheduleConfigModal').classList.add('hidden');
+    }
+    function setDest(name) {
+      document.getElementById('destInput').value = name;
+    }
+    function setPreset(mins) {
+      selectedPresetMinutes = mins;
+      document.querySelectorAll('.preset-btn').forEach(b => {
+        b.className = "preset-btn py-2 text-xs rounded-lg border border-safenexBorder bg-safenexSurfaceVar text-gray-300 font-medium";
+      });
+      event.target.className = "preset-btn py-2 text-xs rounded-lg border border-cyanAccent bg-cyanAccent/15 text-cyanAccent font-bold";
+      document.getElementById('scheduleCalculatedLabel').innerText = `Expected: in ${mins} mins`;
+    }
+    function calculateMinutesTo8PM() {
+      const now = new Date();
+      const target = new Date();
+      target.setHours(20, 0, 0, 0);
+      if (target <= now) target.setDate(target.getDate() + 1);
+      return Math.max(15, Math.floor((target - now) / (60 * 1000)));
+    }
+    function saveAndStartSchedule() {
+      const dest = document.getElementById('destInput').value.trim() || 'Home';
+      const arrivalEpoch = Date.now() + (selectedPresetMinutes * 60 * 1000);
+      const notify = document.getElementById('notifyArrivalCheck').checked;
+
+      activeSchedule = { destination: dest, arrivalEpoch, notify };
+      localStorage.setItem('safenex_active_schedule', JSON.stringify(activeSchedule));
+      closeScheduleModal();
+      updateScheduleUI();
+      speak("Commute safety schedule started. Safe travels!");
+    }
+
+    function cancelSchedule() {
+      activeSchedule = null;
+      localStorage.removeItem('safenex_active_schedule');
+      updateScheduleUI();
+    }
+
+    function extendSchedule(mins = 15) {
+      if (!activeSchedule) return;
+      activeSchedule.arrivalEpoch = Date.now() + (mins * 60 * 1000);
+      localStorage.setItem('safenex_active_schedule', JSON.stringify(activeSchedule));
+      closeCheckInAlert();
+      updateScheduleUI();
+      speak(`Commute extended by ${mins} minutes.`);
+    }
+
+    function confirmSafeArrival() {
+      const dest = activeSchedule ? activeSchedule.destination : 'Destination';
+      closeCheckInAlert();
+      cancelSchedule();
+      speak(`Welcome back! Notified your guardian that you arrived safely at ${dest}.`);
+
+      const primary = getPrimaryGuardian();
+      if (primary) {
+        const msg = `✅ SAFENEX UPDATE: I have safely arrived at ${dest} on schedule. All is well! 🛡️`;
+        const waUrl = `https://api.whatsapp.com/send?phone=${primary.phone.replace(/\D/g,'')}&text=${encodeURIComponent(msg)}`;
+        window.open(waUrl, '_blank');
+      }
+    }
+
+    function simulateCheckIn() {
+      if (!activeSchedule) {
+        activeSchedule = { destination: 'Home', arrivalEpoch: Date.now() - 1000, notify: true };
+      }
+      showCheckInAlert();
+    }
+
+    function showCheckInAlert() {
+      const modal = document.getElementById('checkInModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('active');
+      checkInSecondsLeft = 60;
+
+      const dest = activeSchedule ? activeSchedule.destination : 'Home';
+      document.getElementById('checkInModalDest').innerText = `Expected at ${dest}`;
+
+      // Play alert beep
+      playBeep();
+
+      if (checkInInterval) clearInterval(checkInInterval);
+      checkInInterval = setInterval(() => {
+        checkInSecondsLeft--;
+        document.getElementById('checkInCountdownText').innerText = `00:${String(checkInSecondsLeft).padStart(2, '0')}`;
+        playBeep();
+
+        if (checkInSecondsLeft <= 0) {
+          clearInterval(checkInInterval);
+          closeCheckInAlert();
+          triggerEmergency('SCHEDULE_OVERDUE');
+        }
+      }, 1000);
+    }
+
+    function closeCheckInAlert() {
+      if (checkInInterval) clearInterval(checkInInterval);
+      const modal = document.getElementById('checkInModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('active');
+    }
+
+    // ==========================================
+    // 🚨 FULL EMERGENCY PROTOCOL 🚨
+    // ==========================================
+    function triggerEmergency(source = 'BUTTON') {
+      if (emergencyActive) return;
+      emergencyActive = true;
+
+      // Switch screens
+      document.getElementById('homeScreen').classList.add('hidden');
+      document.getElementById('emergencyScreen').classList.remove('hidden');
+
+      const triggerMap = {
+        'BUTTON': 'Trigger: Top Red Round SOS Button',
+        'SHAKE': 'Trigger: Vigorous Motion / Shake Sensor',
+        'VOICE': 'Trigger: DITTU Voice Alert ("HELP!")',
+        'SCHEDULE_OVERDUE': 'Trigger: Commute Overdue (60s Check-In Timeout)'
+      };
+      document.getElementById('emergencyTriggerSource').innerText = triggerMap[source] || 'Trigger: Emergency SOS';
+
+      // Start Siren Synthesizer
+      startSiren();
+
+      // Start Strobe Flasher
+      startStrobe();
+
+      // Start Camera Video & Audio Recording
+      startWebcamRecording();
+
+      // Init Google Map
+      initGoogleMap();
+
+      // Stream to Supabase
+      streamFixToSupabase(source);
+
+      // Speak Emergency Confirmation
+      speak("Emergency mode activated! Siren, GPS tracking, and evidence recording engaged.");
+
+      // Warn before tab close
+      window.onbeforeunload = function() {
+        return "🚨 EMERGENCY MODE IS ACTIVE! Disarm with PIN to exit.";
+      };
+    }
+
+    function startSiren() {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        sirenOsc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        gainNode.gain.setValueAtTime(0.85, audioCtx.currentTime);
+
+        sirenOsc.type = 'sawtooth';
+        sirenOsc.frequency.setValueAtTime(800, audioCtx.currentTime);
+
+        let freq = 800;
+        let rising = true;
+        sirenInterval = setInterval(() => {
+          if (!emergencyActive) return;
+          if (rising) {
+            freq += 35;
+            if (freq >= 1300) rising = false;
+          } else {
+            freq -= 35;
+            if (freq <= 800) rising = true;
+          }
+          if (sirenOsc) sirenOsc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        }, 30);
+
+        sirenOsc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        sirenOsc.start();
+      } catch (e) {
+        console.warn("Audio Context error:", e);
+      }
+    }
+
+    function stopSiren() {
+      if (sirenInterval) clearInterval(sirenInterval);
+      if (sirenOsc) {
+        try { sirenOsc.stop(); sirenOsc.disconnect(); } catch (e) {}
+        sirenOsc = null;
+      }
+    }
+
+    function startStrobe() {
+      const overlay = document.getElementById('strobeOverlay');
+      let on = false;
+      strobeInterval = setInterval(() => {
+        if (!emergencyActive) return;
+        on = !on;
+        overlay.style.opacity = on ? '0.45' : '0';
+      }, 100);
+    }
+
+    function stopStrobe() {
+      if (strobeInterval) clearInterval(strobeInterval);
+      document.getElementById('strobeOverlay').style.opacity = '0';
+    }
+
+    function playBeep() {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.15);
+      } catch (e) {}
+    }
+
+    // ==========================================
+    // GOOGLE MAPS & LOCATION
+    // ==========================================
+    function startLocationWatcher() {
+      if (navigator.geolocation) {
+        navigator.geolocation.watchPosition(
+          (pos) => {
+            currentCoords.lat = pos.coords.latitude;
+            currentCoords.lng = pos.coords.longitude;
+            currentCoords.accuracy = Math.round(pos.coords.accuracy);
+
+            document.getElementById('liveCoordsText').innerText = `${currentCoords.lat.toFixed(5)}° N, ${currentCoords.lng.toFixed(5)}° E`;
+            document.getElementById('gpsAccuracyBadge').innerText = `ACCURATE ±${currentCoords.accuracy}m`;
+
+            // Reverse Geocoding
+            reverseGeocode(currentCoords.lat, currentCoords.lng);
+
+            if (map && marker) {
+              const latLng = new google.maps.LatLng(currentCoords.lat, currentCoords.lng);
+              marker.setPosition(latLng);
+              if (accuracyCircle) {
+                accuracyCircle.setCenter(latLng);
+                accuracyCircle.setRadius(currentCoords.accuracy);
+              }
+              map.panTo(latLng);
+            }
+          },
+          (err) => console.warn("GPS error:", err),
+          { enableHighAccuracy: true, maximumAge: 1000, timeout: 5000 }
+        );
+      }
+    }
+
+    function reverseGeocode(lat, lng) {
+      if (window.google && google.maps && google.maps.Geocoder) {
+        const geocoder = new google.maps.Geocoder();
+        geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+          if (status === "OK" && results[0]) {
+            currentAddress = results[0].formatted_address;
+            document.getElementById('liveAddressText').innerText = currentAddress;
+          }
+        });
+      }
+    }
+
+    function initGoogleMap() {
+      if (!window.google || !google.maps) return;
+      const center = { lat: currentCoords.lat, lng: currentCoords.lng };
+
+      map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 16,
+        center: center,
+        disableDefaultUI: true,
+        styles: [
+          { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+          { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
+          { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+          { featureType: "road", elementType: "geometry", stylers: [{ color: "#38414e" }] }
+        ]
+      });
+
+      marker = new google.maps.Marker({
+        position: center,
+        map: map,
+        title: "Current Emergency Location",
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 9,
+          fillColor: "#00E5FF",
+          fillOpacity: 1,
+          strokeColor: "#FFFFFF",
+          strokeWeight: 2
+        }
+      });
+
+      accuracyCircle = new google.maps.Circle({
+        strokeColor: "#00E5FF",
+        strokeOpacity: 0.8,
+        strokeWeight: 2,
+        fillColor: "#00E5FF",
+        fillOpacity: 0.2,
+        map: map,
+        center: center,
+        radius: currentCoords.accuracy
+      });
+    }
+
+    function shareWhatsAppLocation() {
+      const primary = getPrimaryGuardian();
+      const mapsUrl = `https://maps.google.com/?q=${currentCoords.lat},${currentCoords.lng}`;
+      const msg = `🚨 *SAFENEX EMERGENCY ALERT!*\nI need immediate help!\n\n📍 *My Live GPS Location:*\n${currentAddress}\nCoordinates: ${currentCoords.lat.toFixed(5)}, ${currentCoords.lng.toFixed(5)}\nGoogle Map: ${mapsUrl}\n\n⚡ Sent automatically by SAFENEX Web Safety System.`;
+      
+      const phone = primary ? primary.phone.replace(/\D/g,'') : '';
+      const url = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(msg)}`;
+      window.open(url, '_blank');
+    }
+
+    function callGuardian() {
+      const primary = getPrimaryGuardian();
+      if (primary && primary.phone) {
+        window.location.href = `tel:${primary.phone}`;
+      }
+    }
+
+    // ==========================================
+    // SUPABASE LIVE CLOUD STREAMING
+    // ==========================================
+    async function streamFixToSupabase(trigger) {
+      try {
+        const payload = {
+          device_id: 'web-safenex-01',
+          latitude: currentCoords.lat,
+          longitude: currentCoords.lng,
+          accuracy: currentCoords.accuracy,
+          altitude: 0,
+          speed: 0,
+          trigger_source: trigger,
+          emergency_active: true,
+          timestamp: new Date().toISOString()
+        };
+
+        await fetch(`${SUPABASE_URL}/rest/v1/gps_fixes`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify(payload)
+        });
+        console.log("GPS fix streamed to Supabase cloud.");
+      } catch (e) {
+        console.warn("Supabase stream error:", e);
+      }
+    }
+
+    // ==========================================
+    // WEBCAM & VIDEO RECORDING
+    // ==========================================
+    async function startWebcamRecording() {
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: true });
+        const videoElem = document.getElementById('webcamVideo');
+        videoElem.srcObject = mediaStream;
+
+        videoSeconds = 0;
+        if (videoTimer) clearInterval(videoTimer);
+        videoTimer = setInterval(() => {
+          videoSeconds++;
+          const mins = Math.floor(videoSeconds / 60);
+          const secs = videoSeconds % 60;
+          document.getElementById('recTimerText').innerText = `REC ${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+        }, 1000);
+      } catch (e) {
+        console.warn("Webcam not accessible:", e);
+      }
+    }
+
+    function stopWebcamRecording() {
+      if (videoTimer) clearInterval(videoTimer);
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(t => t.stop());
+        mediaStream = null;
+      }
+    }
+
+    // ==========================================
+    // SECURITY PIN VERIFICATION (1234)
+    // ==========================================
+    function openPinModal() {
+      currentPin = "";
+      updatePinDots();
+      document.getElementById('pinErrorText').classList.add('hidden');
+      document.getElementById('pinModal').classList.remove('hidden');
+    }
+    function closePinModal() {
+      document.getElementById('pinModal').classList.add('hidden');
+    }
+    function enterDigit(d) {
+      if (currentPin.length < 4) {
+        currentPin += d;
+        updatePinDots();
+        if (currentPin.length === 4) {
+          verifyPin();
+        }
+      }
+    }
+    function deleteDigit() {
+      if (currentPin.length > 0) {
+        currentPin = currentPin.slice(0, -1);
+        updatePinDots();
+      }
+    }
+    function clearPin() {
+      currentPin = "";
+      updatePinDots();
+    }
+    function updatePinDots() {
+      const dots = document.getElementById('pinDots').children;
+      for (let i = 0; i < 4; i++) {
+        if (i < currentPin.length) {
+          dots[i].className = "w-4 h-4 rounded-full bg-cyanAccent shadow-md";
+        } else {
+          dots[i].className = "w-4 h-4 rounded-full border border-gray-500";
+        }
+      }
+    }
+    function verifyPin() {
+      if (currentPin === "1234") {
+        // Disarm!
+        disarmEmergency();
+      } else {
+        document.getElementById('pinErrorText').classList.remove('hidden');
+        setTimeout(() => {
+          currentPin = "";
+          updatePinDots();
+        }, 400);
+      }
+    }
+    function disarmEmergency() {
+      emergencyActive = false;
+      stopSiren();
+      stopStrobe();
+      stopWebcamRecording();
+      window.onbeforeunload = null;
+
+      closePinModal();
+      document.getElementById('emergencyScreen').classList.add('hidden');
+      document.getElementById('homeScreen').classList.remove('hidden');
+
+      speak("Safety verified. Emergency disarmed. System on standby.");
+    }
+
+    // ==========================================
+    // DITTU AI VOICE ASSISTANT
+    // ==========================================
+    function initSpeechRecognition() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) return;
+
+      recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      recognition.onresult = (event) => {
+        const last = event.results.length - 1;
+        const text = event.results[last][0].transcript.trim().toLowerCase();
+        handleVoiceCommand(text);
+      };
+
+      recognition.onerror = () => {};
+      recognition.onend = () => {
+        if (isVoiceWakeEnabled && !emergencyActive) {
+          try { recognition.start(); } catch (e) {}
+        }
+      };
+
+      if (isVoiceWakeEnabled) {
+        try { recognition.start(); } catch (e) {}
+      }
+    }
+
+    function toggleDittuVoice() {
+      isVoiceWakeEnabled = !isVoiceWakeEnabled;
+      const btn = document.getElementById('dittuToggleBtn');
+      if (isVoiceWakeEnabled) {
+        btn.innerText = "VOICE WAKE ON";
+        btn.className = "text-xs px-2.5 py-1 rounded-lg border border-cyanAccent/40 text-cyanAccent bg-cyanAccent/10 font-bold";
+        try { recognition.start(); } catch (e) {}
+      } else {
+        btn.innerText = "VOICE WAKE OFF";
+        btn.className = "text-xs px-2.5 py-1 rounded-lg border border-safenexBorder text-gray-400 bg-safenexSurfaceVar font-bold";
+        try { recognition.stop(); } catch (e) {}
+      }
+    }
+
+    function startDittuManual() {
+      speak("Listening. Speak your emergency command.");
+      try {
+        if (recognition) recognition.start();
+      } catch (e) {}
+    }
+
+    function handleVoiceCommand(phrase) {
+      showDittuTranscript(phrase);
+
+      if (phrase.includes('help') || phrase.includes('emergency') || phrase.includes('sos')) {
+        speak("Emergency command detected! Activating full emergency protocol.");
+        triggerEmergency('VOICE');
+      } else if (phrase.includes('call') && phrase.includes('guardian')) {
+        speak("Calling your primary guardian.");
+        callGuardian();
+      } else if (phrase.includes('where am i') || phrase.includes('location')) {
+        speak(`You are currently near ${currentAddress}`);
+      } else if (phrase.includes('share') && phrase.includes('guardian')) {
+        speak("Opening WhatsApp to share live location with your primary guardian.");
+        shareWhatsAppLocation();
+      } else if (phrase.includes('mute') || phrase.includes('stop alarm')) {
+        speak("Emergency alarm is strictly locked. Please verify your PIN on screen to disarm.");
+      }
+    }
+
+    function showDittuTranscript(heard) {
+      const box = document.getElementById('dittuTranscriptBox');
+      box.classList.remove('hidden');
+      document.getElementById('dittuHeardText').innerText = `Heard: "${heard}"`;
+      document.getElementById('dittuReplyText').innerText = "Processing command...";
+    }
+
+    function speak(text) {
+      if (!window.speechSynthesis) return;
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.rate = 1.05;
+      utter.pitch = 1.0;
+      window.speechSynthesis.speak(utter);
+      const replyElem = document.getElementById('dittuReplyText');
+      if (replyElem) replyElem.innerText = `Dittu: "${text}"`;
+    }
+  </script>
+</body>
+</html>

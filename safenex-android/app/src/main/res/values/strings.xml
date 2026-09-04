@@ -1,0 +1,33 @@
+﻿<resources>
+    <string name="app_name">SAFENEX</string>
+    <string name="tagline">Personal Safety System</string>
+    <string name="band_title">SAFENEX BAND</string>
+    <string name="status_label">Status:</string>
+    <string name="status_disconnected">DISCONNECTED</string>
+    <string name="status_connected">CONNECTED</string>
+    <string name="status_scanning">SEARCHING...</string>
+    <string name="status_connecting">CONNECTING...</string>
+    <string name="scan_button">SCAN FOR BAND</string>
+    <string name="disconnect_button">DISCONNECT</string>
+    <string name="try_again_button">TRY AGAIN</string>
+    <string name="searching_band">Searching for SAFENEX Band...</string>
+    <string name="band_not_found">SAFENEX Band not found.</string>
+    <string name="band_disconnected">BAND DISCONNECTED</string>
+    <string name="band_connection_lost">Band connection lost. Emergency session remains active.</string>
+    <string name="dittu_title">DITTU</string>
+    <string name="dittu_ready">Ready</string>
+    <string name="dittu_emergency">EMERGENCY MODE READY</string>
+    <string name="emergency_protection">Emergency Protection</string>
+    <string name="standby">STANDBY</string>
+    <string name="emergency_mode_title">!! EMERGENCY MODE !!</string>
+    <string name="emergency_mode_subtitle">SAFENEX BAND ACTIVATED</string>
+    <string name="trigger_label">Trigger:</string>
+    <string name="trigger_button">Button</string>
+    <string name="trigger_shake">Vigorous Shake</string>
+    <string name="location_label">Location:</string>
+    <string name="not_implemented">NOT IMPLEMENTED YET</string>
+    <string name="guardians_label">Guardians:</string>
+    <string name="verify_safety_button">VERIFY SAFETY</string>
+    <string name="enter_pin">Enter your SAFENEX PIN</string>
+    <string name="verify_button">VERIFY</string>
+</resources>
