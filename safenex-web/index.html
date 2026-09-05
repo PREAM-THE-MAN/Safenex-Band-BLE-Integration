@@ -119,33 +119,56 @@
         </div>
       </div>
 
-      <!-- Emergency Video & Voice Evidence Player for Guardian -->
+      <!-- Emergency Video (MP4) & Voice (M4A) Evidence Player for Guardian -->
       <div id="guardianVideoCard" class="hidden bg-safenexSurface border border-emergencyRed/40 rounded-2xl p-3.5 space-y-2.5 shadow-lg">
         <div class="flex items-center justify-between">
           <span class="text-xs font-bold text-white flex items-center gap-1.5">
             <span class="w-2.5 h-2.5 rounded-full bg-emergencyRed animate-ping"></span>
-            Emergency Video & Voice Evidence
+            Emergency Video (MP4) & Voice (M4A)
           </span>
           <span id="guardianVideoBadge" class="text-[9px] font-mono px-2 py-0.5 rounded bg-emergencyRed/20 text-emergencyRed font-bold">
-            SYNCING VIDEO...
+            SYNCING MP4 / M4A...
           </span>
         </div>
+
+        <!-- Video Player (MP4) -->
         <div class="relative w-full rounded-xl bg-black overflow-hidden flex items-center justify-center border border-safenexBorder/50">
           <video id="guardianVideoPlayer" class="w-full max-h-56 object-contain rounded-xl" controls playsinline></video>
         </div>
+
+        <!-- Dedicated Audio Player (M4A Voice) -->
+        <div id="guardianAudioBox" class="p-2.5 rounded-xl bg-safenexSurfaceVar border border-safenexBorder/40 space-y-1.5">
+          <div class="flex items-center justify-between text-[10px] text-gray-300">
+            <span class="flex items-center gap-1.5 font-bold text-white">
+              <svg class="w-3.5 h-3.5 text-safetyGreen" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/>
+              </svg>
+              Microphone Voice Audio (M4A):
+            </span>
+            <span class="text-safetyGreen font-mono text-[9px] font-bold">AAC AUDIO</span>
+          </div>
+          <audio id="guardianAudioPlayer" class="w-full h-8" controls></audio>
+        </div>
+
         <div class="flex items-center justify-between text-[10px] text-gray-400 pt-0.5">
           <span class="flex items-center gap-1 text-gray-300">
-            <svg class="w-3.5 h-3.5 text-cyanAccent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/>
-            </svg>
-            Front camera & mic voice recording
+            Universal MP4 Video & M4A Audio
           </span>
-          <a id="guardianVideoDownload" href="#" download="safenex-emergency-video.webm" class="text-cyanAccent hover:underline flex items-center gap-1 font-bold">
-            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-            </svg>
-            Download
-          </a>
+          <div class="flex items-center space-x-2">
+            <a id="guardianVideoDownload" href="#" download="safenex-emergency-video.mp4" class="text-cyanAccent hover:underline flex items-center gap-1 font-bold">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+              </svg>
+              MP4 Video
+            </a>
+            <span class="text-gray-600">•</span>
+            <a id="guardianAudioDownload" href="#" download="safenex-emergency-voice.m4a" class="text-safetyGreen hover:underline flex items-center gap-1 font-bold">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+              </svg>
+              M4A Audio
+            </a>
+          </div>
         </div>
       </div>
 
@@ -460,7 +483,7 @@
             CAMERA + VOICE ACTIVE
           </div>
           <div id="videoRecMimeBadge" class="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-black/70 text-cyanAccent text-[8px] font-mono">
-            WEBM/OPUS
+            MP4 / M4A
           </div>
         </div>
 
@@ -483,20 +506,23 @@
             <svg class="w-3.5 h-3.5 text-cyanAccent animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24" id="videoSyncIcon">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
             </svg>
-            <span id="supabaseVideoStatusText">Syncing video & voice to Supabase...</span>
+            <span id="supabaseVideoStatusText">Syncing MP4 & M4A to Supabase...</span>
           </div>
           <button id="btnManualVideoUpload" onclick="manualSyncVideoToSupabase()" class="text-[9px] px-2 py-0.5 rounded bg-cyanAccent/15 text-cyanAccent font-bold hover:bg-cyanAccent/25 border border-cyanAccent/30">
             SYNC NOW
           </button>
         </div>
 
-        <!-- Video Evidence Action Buttons (Preview / Download) -->
-        <div id="videoEvidenceActions" class="hidden grid grid-cols-2 gap-2 pt-1">
+        <!-- Video Evidence Action Buttons (Preview / Download MP4 & M4A) -->
+        <div id="videoEvidenceActions" class="hidden grid grid-cols-3 gap-1.5 pt-1">
           <button onclick="previewRecordedVideo()" class="py-1.5 px-2 rounded-lg bg-safenexSurfaceVar border border-safenexBorder text-white text-[10px] font-bold flex items-center justify-center space-x-1 hover:brightness-110">
-            <span>▶️ Play Recording</span>
+            <span>▶️ Play</span>
           </button>
           <button onclick="downloadRecordedVideo()" class="py-1.5 px-2 rounded-lg bg-cyanAccent/15 border border-cyanAccent/30 text-cyanAccent text-[10px] font-bold flex items-center justify-center space-x-1 hover:brightness-110">
-            <span>⬇️ Download WebM</span>
+            <span>⬇️ MP4 Video</span>
+          </button>
+          <button onclick="downloadRecordedAudio()" class="py-1.5 px-2 rounded-lg bg-safetyGreen/15 border border-safetyGreen/30 text-safetyGreen text-[10px] font-bold flex items-center justify-center space-x-1 hover:brightness-110">
+            <span>🎙️ M4A Audio</span>
           </button>
         </div>
       </div>
@@ -707,9 +733,30 @@
           </div>
         </div>
 
+        <!-- Audio Player in Test Modal (M4A) -->
+        <div id="testPlaybackAudioBox" class="hidden p-2 rounded-xl bg-safenexSurfaceVar border border-safenexBorder/40 space-y-1">
+          <div class="flex items-center justify-between text-[10px] text-gray-300">
+            <span class="font-bold text-white flex items-center gap-1">
+              🎙️ Recorded M4A Voice:
+            </span>
+            <span class="text-safetyGreen font-mono text-[9px] font-bold">AAC AUDIO</span>
+          </div>
+          <audio id="testPlaybackAudio" class="w-full h-8" controls></audio>
+        </div>
+
         <!-- Status Log Box -->
         <div id="testStatusLogBox" class="p-2.5 rounded-xl bg-safenexDark/90 border border-safenexBorder/50 text-[10px] space-y-1">
           <p id="testStatusMessage" class="text-gray-300">Tap below to test camera & microphone upload.</p>
+        </div>
+
+        <!-- Download Buttons in Test Modal -->
+        <div id="testDownloadButtons" class="hidden grid grid-cols-2 gap-2">
+          <a id="testDownloadMp4Btn" href="#" download="safenex-test.mp4" class="py-1.5 rounded-lg bg-cyanAccent/15 border border-cyanAccent/30 text-cyanAccent text-[10px] font-bold flex items-center justify-center space-x-1">
+            <span>⬇️ Save MP4</span>
+          </a>
+          <a id="testDownloadM4aBtn" href="#" download="safenex-test.m4a" class="py-1.5 rounded-lg bg-safetyGreen/15 border border-safetyGreen/30 text-safetyGreen text-[10px] font-bold flex items-center justify-center space-x-1">
+            <span>🎙️ Save M4A</span>
+          </a>
         </div>
 
         <!-- Controls -->
@@ -767,23 +814,27 @@
 
     let mediaStream = null;
     let videoTimer = null;
-    let videoSeconds = 0;
-    let mediaRecorder = null;
-    let recordedChunks = [];
+    let videoRecorder = null;
+    let audioRecorder = null;
+    let recordedVideoChunks = [];
+    let recordedAudioChunks = [];
     let videoUploadInterval = null;
-    let lastRecordedBlob = null;
+    let lastRecordedVideoBlob = null;
+    let lastRecordedAudioBlob = null;
     let micAudioContext = null;
     let micAnalyser = null;
-    let micAnimFrame = null;
-    let isUploadingVideo = false;
+    let isUploadingMedia = false;
 
     // Standalone video/voice test state
     let testMediaStream = null;
-    let testMediaRecorder = null;
-    let testRecordedChunks = [];
+    let testVideoRecorder = null;
+    let testAudioRecorder = null;
+    let testVideoChunks = [];
+    let testAudioChunks = [];
     let testMicAudioContext = null;
     let testMicAnalyser = null;
-    let testMicAnimFrame = null;
+    let testVideoBlob = null;
+    let testAudioBlob = null;
 
     // Guardians
     let guardians = JSON.parse(localStorage.getItem('safenex_guardians') || 'null') || [
@@ -1115,23 +1166,38 @@
             document.getElementById('trackCoordsText').innerText = `${ev.latitude.toFixed(5)}° N, ${ev.longitude.toFixed(5)}° E`;
           }
 
-          // Check for video & voice evidence
-          if (ev.video_url) {
+          // Check for MP4 video & M4A voice evidence
+          if (ev.video_url || ev.audio_url) {
             const videoCard = document.getElementById('guardianVideoCard');
             const videoPlayer = document.getElementById('guardianVideoPlayer');
+            const audioBox = document.getElementById('guardianAudioBox');
+            const audioPlayer = document.getElementById('guardianAudioPlayer');
             const videoBadge = document.getElementById('guardianVideoBadge');
             const videoDownload = document.getElementById('guardianVideoDownload');
-            if (videoCard && videoPlayer) {
-              videoCard.classList.remove('hidden');
+            const audioDownload = document.getElementById('guardianAudioDownload');
+
+            if (videoCard) videoCard.classList.remove('hidden');
+
+            if (ev.video_url && videoPlayer) {
               if (videoPlayer.dataset.lastSrc !== ev.video_url) {
                 videoPlayer.dataset.lastSrc = ev.video_url;
                 videoPlayer.src = ev.video_url;
                 if (videoDownload) videoDownload.href = ev.video_url;
-                if (videoBadge) {
-                  videoBadge.innerText = 'CLOUD SAVED';
-                  videoBadge.className = 'text-[9px] font-mono px-2 py-0.5 rounded bg-safetyGreen/20 text-safetyGreen font-bold';
-                }
               }
+            }
+
+            if (ev.audio_url && audioPlayer) {
+              if (audioBox) audioBox.classList.remove('hidden');
+              if (audioPlayer.dataset.lastSrc !== ev.audio_url) {
+                audioPlayer.dataset.lastSrc = ev.audio_url;
+                audioPlayer.src = ev.audio_url;
+                if (audioDownload) audioDownload.href = ev.audio_url;
+              }
+            }
+
+            if (videoBadge) {
+              videoBadge.innerText = 'MP4 / M4A CLOUD SAVED';
+              videoBadge.className = 'text-[9px] font-mono px-2 py-0.5 rounded bg-safetyGreen/20 text-safetyGreen font-bold';
             }
           }
         }
@@ -1359,15 +1425,33 @@
     }
 
     // ==========================================
-    // WEBCAM & VIDEO + VOICE EVIDENCE RECORDING (SUPABASE INTEGRATED)
+    // WEBCAM & MP4 VIDEO + M4A AUDIO RECORDING (SUPABASE INTEGRATED)
     // ==========================================
-    function getBestSupportedMimeType() {
+    function getBestSupportedVideoMimeType() {
       const candidates = [
-        'video/webm;codecs=vp8,opus',
-        'video/webm;codecs=vp9,opus',
-        'video/webm',
         'video/mp4;codecs=avc1,mp4a',
-        'video/mp4'
+        'video/mp4;codecs=avc1',
+        'video/mp4;codecs=h264,aac',
+        'video/mp4',
+        'video/webm;codecs=vp8,opus',
+        'video/webm'
+      ];
+      for (const mime of candidates) {
+        if (window.MediaRecorder && MediaRecorder.isTypeSupported(mime)) {
+          return mime;
+        }
+      }
+      return '';
+    }
+
+    function getBestSupportedAudioMimeType() {
+      const candidates = [
+        'audio/mp4;codecs=mp4a.40.2',
+        'audio/mp4',
+        'audio/aac',
+        'audio/m4a',
+        'audio/webm;codecs=opus',
+        'audio/webm'
       ];
       for (const mime of candidates) {
         if (window.MediaRecorder && MediaRecorder.isTypeSupported(mime)) {
@@ -1431,9 +1515,17 @@
       }
     }
 
+    function blobToDataUrl(blob) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    }
+
     async function startWebcamRecording() {
       try {
-        // Request both high-quality video and clear voice audio
         const constraints = {
           video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 24, max: 30 } },
           audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
@@ -1459,33 +1551,43 @@
           micAnalyser = micViz.analyser;
         }
 
-        // Initialize MediaRecorder for synchronized Video + Voice
-        const mimeType = getBestSupportedMimeType();
+        // 1. Initialize MP4 Video Recorder
+        const videoMime = getBestSupportedVideoMimeType();
         const badgeElem = document.getElementById('videoRecMimeBadge');
-        if (badgeElem && mimeType) {
-          badgeElem.innerText = mimeType.toUpperCase().includes('MP4') ? 'MP4/AAC' : 'WEBM/OPUS';
-        }
+        if (badgeElem) badgeElem.innerText = 'MP4 / M4A';
 
-        const recorderOptions = mimeType 
-          ? { mimeType, videoBitsPerSecond: 350000, audioBitsPerSecond: 64000 } 
-          : {};
-
-        recordedChunks = [];
+        recordedVideoChunks = [];
+        const vOptions = videoMime ? { mimeType: videoMime, videoBitsPerSecond: 450000, audioBitsPerSecond: 96000 } : {};
         try {
-          mediaRecorder = new MediaRecorder(mediaStream, recorderOptions);
-        } catch (recInitErr) {
-          console.warn("Falling back to default MediaRecorder options:", recInitErr);
-          mediaRecorder = new MediaRecorder(mediaStream);
+          videoRecorder = new MediaRecorder(mediaStream, vOptions);
+        } catch (vErr) {
+          console.warn("Falling back to default MediaRecorder for video:", vErr);
+          videoRecorder = new MediaRecorder(mediaStream);
+        }
+        videoRecorder.ondataavailable = (e) => {
+          if (e.data && e.data.size > 0) recordedVideoChunks.push(e.data);
+        };
+        videoRecorder.start(1000);
+
+        // 2. Initialize Dedicated M4A Audio Recorder
+        const audioMime = getBestSupportedAudioMimeType();
+        recordedAudioChunks = [];
+        try {
+          const audioTracks = mediaStream.getAudioTracks();
+          if (audioTracks.length > 0) {
+            const audioStream = new MediaStream(audioTracks);
+            const aOptions = audioMime ? { mimeType: audioMime, audioBitsPerSecond: 96000 } : {};
+            audioRecorder = new MediaRecorder(audioStream, aOptions);
+            audioRecorder.ondataavailable = (e) => {
+              if (e.data && e.data.size > 0) recordedAudioChunks.push(e.data);
+            };
+            audioRecorder.start(1000);
+          }
+        } catch (aErr) {
+          console.warn("Audio-only recorder init notice:", aErr);
         }
 
-        mediaRecorder.ondataavailable = (event) => {
-          if (event.data && event.data.size > 0) {
-            recordedChunks.push(event.data);
-          }
-        };
-
-        mediaRecorder.start(1000); // 1-second chunks
-        console.log("🎥 MediaRecorder active (synchronized Video + Voice)");
+        console.log("🎥 MP4 Video & M4A Voice recorders started");
 
         // Timer
         videoSeconds = 0;
@@ -1499,8 +1601,6 @@
         }, 1000);
 
         // Periodic cloud sync to Supabase:
-        // First snapshot at 8 seconds so early evidence is secured immediately,
-        // then repeated every 15 seconds.
         if (videoUploadInterval) clearInterval(videoUploadInterval);
         setTimeout(() => {
           if (emergencyActive) uploadRecordingToSupabase(false);
@@ -1519,29 +1619,33 @@
 
     async function uploadRecordingToSupabase(isFinal = false) {
       if (!currentEmergencyId) return;
-      if (!recordedChunks || recordedChunks.length === 0) return;
-      if (isUploadingVideo) return;
+      if ((!recordedVideoChunks || recordedVideoChunks.length === 0) && (!recordedAudioChunks || recordedAudioChunks.length === 0)) return;
+      if (isUploadingMedia) return;
 
-      isUploadingVideo = true;
+      isUploadingMedia = true;
       const statusText = document.getElementById('supabaseVideoStatusText');
       const syncIcon = document.getElementById('videoSyncIcon');
-      if (statusText) statusText.innerText = isFinal ? "Finalizing & saving video..." : "Uploading video & voice to Supabase...";
+      if (statusText) statusText.innerText = isFinal ? "Finalizing MP4 & M4A..." : "Uploading MP4 & M4A to Supabase...";
       if (syncIcon) syncIcon.classList.add('animate-spin');
 
       try {
-        const mime = (mediaRecorder && mediaRecorder.mimeType) ? mediaRecorder.mimeType : 'video/webm';
-        const blob = new Blob(recordedChunks, { type: mime });
-        lastRecordedBlob = blob;
+        const vMime = (videoRecorder && videoRecorder.mimeType) ? videoRecorder.mimeType : 'video/mp4';
+        const aMime = (audioRecorder && audioRecorder.mimeType) ? audioRecorder.mimeType : 'audio/mp4';
 
-        const reader = new FileReader();
-        const dataUrl = await new Promise((resolve, reject) => {
-          reader.onloadend = () => resolve(reader.result);
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        });
+        const videoBlob = new Blob(recordedVideoChunks, { type: vMime });
+        lastRecordedVideoBlob = videoBlob;
 
-        const sizeKb = Math.round(blob.size / 1024);
-        console.log(`📡 Uploading ${sizeKb} KB video with voice to Supabase event ${currentEmergencyId}...`);
+        let audioBlob = null;
+        if (recordedAudioChunks.length > 0) {
+          audioBlob = new Blob(recordedAudioChunks, { type: aMime });
+          lastRecordedAudioBlob = audioBlob;
+        }
+
+        const videoDataUrl = await blobToDataUrl(videoBlob);
+        const audioDataUrl = audioBlob ? await blobToDataUrl(audioBlob) : videoDataUrl;
+
+        const totalKb = Math.round((videoBlob.size + (audioBlob ? audioBlob.size : 0)) / 1024);
+        console.log(`📡 Uploading MP4 (${Math.round(videoBlob.size/1024)} KB) and M4A (${audioBlob ? Math.round(audioBlob.size/1024) : 0} KB) to Supabase...`);
 
         const res = await fetch(`${SUPABASE_URL}/rest/v1/emergency_events?id=eq.${currentEmergencyId}`, {
           method: 'PATCH',
@@ -1552,32 +1656,35 @@
             'Prefer': 'return=minimal'
           },
           body: JSON.stringify({
-            video_url: dataUrl,
-            audio_url: dataUrl
+            video_url: videoDataUrl,
+            audio_url: audioDataUrl
           })
         });
 
         if (res.ok) {
-          if (statusText) statusText.innerText = `☁️ Video & Voice Saved (${sizeKb} KB)`;
+          if (statusText) statusText.innerText = `☁️ MP4 & M4A Saved (${totalKb} KB)`;
           const actions = document.getElementById('videoEvidenceActions');
           if (actions) actions.classList.remove('hidden');
-          console.log(`✅ Supabase video & voice synced successfully (${sizeKb} KB)!`);
+          console.log(`✅ Supabase MP4 video & M4A voice saved successfully (${totalKb} KB)!`);
         } else {
           if (statusText) statusText.innerText = `Upload status: HTTP ${res.status}`;
           console.warn("Supabase video PATCH HTTP error:", res.status);
         }
       } catch (err) {
-        console.warn("Error uploading video to Supabase:", err);
-        if (statusText) statusText.innerText = "Error syncing video to Supabase";
+        console.warn("Error uploading MP4/M4A to Supabase:", err);
+        if (statusText) statusText.innerText = "Error syncing MP4/M4A to Supabase";
       } finally {
-        isUploadingVideo = false;
+        isUploadingMedia = false;
         if (syncIcon) syncIcon.classList.remove('animate-spin');
       }
     }
 
     async function manualSyncVideoToSupabase() {
-      if (mediaRecorder && mediaRecorder.state === 'recording') {
-        mediaRecorder.requestData();
+      if (videoRecorder && videoRecorder.state === 'recording') {
+        try { videoRecorder.requestData(); } catch(e){}
+      }
+      if (audioRecorder && audioRecorder.state === 'recording') {
+        try { audioRecorder.requestData(); } catch(e){}
       }
       await uploadRecordingToSupabase(false);
     }
@@ -1591,14 +1698,15 @@
         micAudioContext = null;
       }
 
-      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-        try {
-          mediaRecorder.requestData();
-          mediaRecorder.stop();
-        } catch(e) {}
-        console.log("MediaRecorder stopped. Uploading final video & voice to Supabase...");
-        await uploadRecordingToSupabase(true);
+      if (videoRecorder && videoRecorder.state !== 'inactive') {
+        try { videoRecorder.requestData(); videoRecorder.stop(); } catch(e){}
       }
+      if (audioRecorder && audioRecorder.state !== 'inactive') {
+        try { audioRecorder.requestData(); audioRecorder.stop(); } catch(e){}
+      }
+
+      console.log("Recorders stopped. Uploading final MP4 & M4A to Supabase...");
+      await uploadRecordingToSupabase(true);
 
       if (mediaStream) {
         mediaStream.getTracks().forEach(t => t.stop());
@@ -1607,52 +1715,70 @@
     }
 
     function previewRecordedVideo() {
-      if (!lastRecordedBlob && recordedChunks.length === 0) {
-        alert("No recording available yet.");
+      if (!lastRecordedVideoBlob && recordedVideoChunks.length === 0) {
+        alert("No video recording available yet.");
         return;
       }
-      const mime = (mediaRecorder && mediaRecorder.mimeType) ? mediaRecorder.mimeType : 'video/webm';
-      const blob = lastRecordedBlob || new Blob(recordedChunks, { type: mime });
+      const vMime = (videoRecorder && videoRecorder.mimeType) ? videoRecorder.mimeType : 'video/mp4';
+      const blob = lastRecordedVideoBlob || new Blob(recordedVideoChunks, { type: vMime });
       const url = URL.createObjectURL(blob);
       const w = window.open("", "_blank");
       if (w) {
-        w.document.write(`<html><head><title>SAFENEX Emergency Video Evidence</title><style>body{margin:0;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;color:#fff;font-family:sans-serif;}video{max-width:90%;max-height:80vh;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.8);}h2{margin-bottom:12px;color:#FF1744;}</style></head><body><h2>🚨 SAFENEX VIDEO & VOICE EVIDENCE</h2><video src="${url}" controls autoplay playsinline></video><p style="color:#aaa;margin-top:12px;">Recorded with front camera & synchronized microphone voice</p></body></html>`);
+        w.document.write(`<html><head><title>SAFENEX Emergency Video (MP4)</title><style>body{margin:0;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;color:#fff;font-family:sans-serif;}video{max-width:90%;max-height:80vh;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.8);}h2{margin-bottom:12px;color:#FF1744;}</style></head><body><h2>🚨 SAFENEX MP4 VIDEO & VOICE EVIDENCE</h2><video src="${url}" controls autoplay playsinline></video><p style="color:#aaa;margin-top:12px;">Recorded with front camera & synchronized microphone audio</p></body></html>`);
       }
     }
 
     function downloadRecordedVideo() {
-      if (!lastRecordedBlob && recordedChunks.length === 0) {
-        alert("No recording available to download yet.");
+      if (!lastRecordedVideoBlob && recordedVideoChunks.length === 0) {
+        alert("No MP4 recording available to download yet.");
         return;
       }
-      const mime = (mediaRecorder && mediaRecorder.mimeType) ? mediaRecorder.mimeType : 'video/webm';
-      const blob = lastRecordedBlob || new Blob(recordedChunks, { type: mime });
+      const vMime = (videoRecorder && videoRecorder.mimeType) ? videoRecorder.mimeType : 'video/mp4';
+      const blob = lastRecordedVideoBlob || new Blob(recordedVideoChunks, { type: vMime });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `safenex-emergency-video-${Date.now()}.webm`;
+      a.download = `safenex-emergency-video-${Date.now()}.mp4`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    function downloadRecordedAudio() {
+      if (!lastRecordedAudioBlob && recordedAudioChunks.length === 0) {
+        alert("No M4A audio available to download yet.");
+        return;
+      }
+      const aMime = (audioRecorder && audioRecorder.mimeType) ? audioRecorder.mimeType : 'audio/mp4';
+      const blob = lastRecordedAudioBlob || new Blob(recordedAudioChunks, { type: aMime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `safenex-emergency-voice-${Date.now()}.m4a`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
     }
 
     // ==========================================
-    // STANDALONE VIDEO & VOICE TEST MODAL HANDLERS
+    // STANDALONE VIDEO & VOICE TEST MODAL HANDLERS (MP4 & M4A)
     // ==========================================
     function openVideoVoiceTestModal() {
       document.getElementById('videoVoiceTestModal').classList.remove('hidden');
       document.getElementById('testCamPreview').classList.remove('hidden');
       document.getElementById('testPlaybackVideo').classList.add('hidden');
+      document.getElementById('testPlaybackAudioBox').classList.add('hidden');
+      document.getElementById('testDownloadButtons').classList.add('hidden');
       document.getElementById('testRecStatusOverlay').classList.add('hidden');
       document.getElementById('testCountdownBadge').classList.add('hidden');
-      document.getElementById('testStatusMessage').innerText = "Ready. Tap button below to record 5-sec video + voice.";
+      document.getElementById('testStatusMessage').innerText = "Ready. Tap button below to record 5-sec MP4 video and M4A voice.";
       const btn = document.getElementById('btnStartVideoVoiceTest');
       btn.disabled = false;
       btn.innerHTML = `
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
         </svg>
-        <span>START 5-SECOND CLOUD TEST</span>
+        <span>START 5-SECOND CLOUD TEST (MP4 / M4A)</span>
       `;
     }
 
@@ -1665,8 +1791,10 @@
         try { testMicAudioContext.close(); } catch(e){}
         testMicAudioContext = null;
       }
-      const playback = document.getElementById('testPlaybackVideo');
-      if (playback) { playback.pause(); playback.src = ""; }
+      const playbackV = document.getElementById('testPlaybackVideo');
+      if (playbackV) { playbackV.pause(); playbackV.src = ""; }
+      const playbackA = document.getElementById('testPlaybackAudio');
+      if (playbackA) { playbackA.pause(); playbackA.src = ""; }
       document.getElementById('videoVoiceTestModal').classList.add('hidden');
     }
 
@@ -1676,7 +1804,12 @@
       const overlay = document.getElementById('testRecStatusOverlay');
       const countdown = document.getElementById('testCountdownBadge');
       const preview = document.getElementById('testCamPreview');
-      const playback = document.getElementById('testPlaybackVideo');
+      const playbackV = document.getElementById('testPlaybackVideo');
+      const audioBox = document.getElementById('testPlaybackAudioBox');
+      const playbackA = document.getElementById('testPlaybackAudio');
+      const downloadBox = document.getElementById('testDownloadButtons');
+      const downloadMp4 = document.getElementById('testDownloadMp4Btn');
+      const downloadM4a = document.getElementById('testDownloadM4aBtn');
 
       btn.disabled = true;
       msg.innerText = "Requesting camera & microphone access...";
@@ -1688,7 +1821,9 @@
         });
 
         preview.classList.remove('hidden');
-        playback.classList.add('hidden');
+        playbackV.classList.add('hidden');
+        audioBox.classList.add('hidden');
+        downloadBox.classList.add('hidden');
         preview.srcObject = testMediaStream;
         preview.play();
 
@@ -1699,21 +1834,37 @@
           testMicAnalyser = testViz.analyser;
         }
 
-        const mime = getBestSupportedMimeType();
-        testRecordedChunks = [];
-        testMediaRecorder = new MediaRecorder(testMediaStream, mime ? { mimeType: mime, videoBitsPerSecond: 350000, audioBitsPerSecond: 64000 } : {});
+        const vMime = getBestSupportedVideoMimeType();
+        const aMime = getBestSupportedAudioMimeType();
 
-        testMediaRecorder.ondataavailable = (e) => {
-          if (e.data && e.data.size > 0) testRecordedChunks.push(e.data);
+        testVideoChunks = [];
+        testAudioChunks = [];
+
+        testVideoRecorder = new MediaRecorder(testMediaStream, vMime ? { mimeType: vMime, videoBitsPerSecond: 450000, audioBitsPerSecond: 96000 } : {});
+        testVideoRecorder.ondataavailable = (e) => {
+          if (e.data && e.data.size > 0) testVideoChunks.push(e.data);
         };
+        testVideoRecorder.start();
 
-        testMediaRecorder.start();
+        try {
+          const audioTracks = testMediaStream.getAudioTracks();
+          if (audioTracks.length > 0) {
+            testAudioRecorder = new MediaRecorder(new MediaStream(audioTracks), aMime ? { mimeType: aMime, audioBitsPerSecond: 96000 } : {});
+            testAudioRecorder.ondataavailable = (e) => {
+              if (e.data && e.data.size > 0) testAudioChunks.push(e.data);
+            };
+            testAudioRecorder.start();
+          }
+        } catch (aErr) {
+          console.warn("Test audio recorder notice:", aErr);
+        }
+
         overlay.classList.remove('hidden');
         countdown.classList.remove('hidden');
 
         let secondsLeft = 5;
         countdown.innerText = `${secondsLeft}s`;
-        msg.innerText = "🔴 Speak now! Recording video and microphone audio...";
+        msg.innerText = "🔴 Speak now! Recording MP4 video and M4A voice audio...";
 
         const timer = setInterval(async () => {
           secondsLeft--;
@@ -1723,74 +1874,90 @@
             clearInterval(timer);
             countdown.classList.add('hidden');
             overlay.classList.add('hidden');
-            msg.innerText = "Processing & uploading recording to Supabase...";
+            msg.innerText = "Packaging MP4 & M4A and uploading to Supabase...";
 
-            testMediaRecorder.stop();
+            try { testVideoRecorder.stop(); } catch(e){}
+            if (testAudioRecorder) { try { testAudioRecorder.stop(); } catch(e){} }
+
             if (testMediaStream) {
               testMediaStream.getTracks().forEach(t => t.stop());
               testMediaStream = null;
             }
 
-            // Wait a moment for chunks
             setTimeout(async () => {
-              const testBlob = new Blob(testRecordedChunks, { type: mime || 'video/webm' });
-              const reader = new FileReader();
-              reader.onloadend = async () => {
-                const dataUrl = reader.result;
-                const sizeKb = Math.round(testBlob.size / 1024);
+              const videoBlob = new Blob(testVideoChunks, { type: vMime || 'video/mp4' });
+              const audioBlob = testAudioChunks.length > 0 
+                ? new Blob(testAudioChunks, { type: aMime || 'audio/mp4' })
+                : videoBlob;
 
-                msg.innerText = `Transmitting ${sizeKb} KB video+voice to Supabase...`;
+              testVideoBlob = videoBlob;
+              testAudioBlob = audioBlob;
 
-                try {
-                  const res = await fetch(`${SUPABASE_URL}/rest/v1/emergency_events`, {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'apikey': SUPABASE_KEY,
-                      'Authorization': `Bearer ${SUPABASE_KEY}`,
-                      'Prefer': 'return=representation'
-                    },
-                    body: JSON.stringify({
-                      device_name: 'SAFENEX-WEB-TEST',
-                      trigger_source: 'VIDEO_VOICE_TEST',
-                      latitude: currentCoords.lat,
-                      longitude: currentCoords.lng,
-                      accuracy: currentCoords.accuracy,
-                      address: currentAddress || 'Test Location',
-                      status: 'RESOLVED',
-                      video_url: dataUrl,
-                      audio_url: dataUrl,
-                      resolved_at: new Date().toISOString()
-                    })
-                  });
+              const videoDataUrl = await blobToDataUrl(videoBlob);
+              const audioDataUrl = await blobToDataUrl(audioBlob);
 
-                  if (res.ok) {
-                    const data = await res.json();
-                    const newId = (data && data[0]) ? data[0].id : 'OK';
-                    msg.innerHTML = `
-                      <span class="text-safetyGreen font-bold">✅ SUCCESS!</span> Saved to Supabase <code class="text-cyanAccent font-mono">emergency_events</code>!
-                      <br/><span class="text-gray-400">Record ID: <span class="text-cyanAccent font-mono text-[9px]">${newId}</span> (${sizeKb} KB)</span>
-                    `;
+              const vSizeKb = Math.round(videoBlob.size / 1024);
+              const aSizeKb = Math.round(audioBlob.size / 1024);
 
-                    // Show playback
-                    preview.classList.add('hidden');
-                    playback.classList.remove('hidden');
-                    playback.src = dataUrl;
-                    playback.play().catch(e => console.log(e));
+              msg.innerText = `Transmitting ${vSizeKb} KB MP4 video & ${aSizeKb} KB M4A audio to Supabase...`;
 
-                    btn.disabled = false;
-                    btn.innerHTML = "<span>RECORD ANOTHER TEST</span>";
-                  } else {
-                    msg.innerText = `Supabase upload error: HTTP ${res.status}`;
-                    btn.disabled = false;
-                  }
-                } catch (upErr) {
-                  msg.innerText = `Network/Upload error: ${upErr.message}`;
+              try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/emergency_events`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': `Bearer ${SUPABASE_KEY}`,
+                    'Prefer': 'return=representation'
+                  },
+                  body: JSON.stringify({
+                    device_name: 'SAFENEX-MP4-TEST',
+                    trigger_source: 'VIDEO_VOICE_MP4_TEST',
+                    latitude: currentCoords.lat,
+                    longitude: currentCoords.lng,
+                    accuracy: currentCoords.accuracy,
+                    address: currentAddress || 'Test Location',
+                    status: 'RESOLVED',
+                    video_url: videoDataUrl,
+                    audio_url: audioDataUrl,
+                    resolved_at: new Date().toISOString()
+                  })
+                });
+
+                if (res.ok) {
+                  const data = await res.json();
+                  const newId = (data && data[0]) ? data[0].id : 'OK';
+                  msg.innerHTML = `
+                    <span class="text-safetyGreen font-bold">✅ SUCCESS!</span> Saved MP4 video & M4A voice to Supabase <code class="text-cyanAccent font-mono">emergency_events</code>!
+                    <br/><span class="text-gray-400">Record ID: <span class="text-cyanAccent font-mono text-[9px]">${newId}</span> (MP4: ${vSizeKb} KB • M4A: ${aSizeKb} KB)</span>
+                  `;
+
+                  // Show Video Playback
+                  preview.classList.add('hidden');
+                  playbackV.classList.remove('hidden');
+                  playbackV.src = videoDataUrl;
+                  playbackV.play().catch(e => console.log(e));
+
+                  // Show Audio Playback
+                  audioBox.classList.remove('hidden');
+                  playbackA.src = audioDataUrl;
+
+                  // Download Buttons
+                  downloadBox.classList.remove('hidden');
+                  downloadMp4.href = videoDataUrl;
+                  downloadM4a.href = audioDataUrl;
+
+                  btn.disabled = false;
+                  btn.innerHTML = "<span>RECORD ANOTHER TEST</span>";
+                } else {
+                  msg.innerText = `Supabase upload error: HTTP ${res.status}`;
                   btn.disabled = false;
                 }
-              };
-              reader.readAsDataURL(testBlob);
-            }, 500);
+              } catch (upErr) {
+                msg.innerText = `Network/Upload error: ${upErr.message}`;
+                btn.disabled = false;
+              }
+            }, 600);
           }
         }, 1000);
 
