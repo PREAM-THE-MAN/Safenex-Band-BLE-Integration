@@ -119,6 +119,36 @@
         </div>
       </div>
 
+      <!-- Emergency Video & Voice Evidence Player for Guardian -->
+      <div id="guardianVideoCard" class="hidden bg-safenexSurface border border-emergencyRed/40 rounded-2xl p-3.5 space-y-2.5 shadow-lg">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-white flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-emergencyRed animate-ping"></span>
+            Emergency Video & Voice Evidence
+          </span>
+          <span id="guardianVideoBadge" class="text-[9px] font-mono px-2 py-0.5 rounded bg-emergencyRed/20 text-emergencyRed font-bold">
+            SYNCING VIDEO...
+          </span>
+        </div>
+        <div class="relative w-full rounded-xl bg-black overflow-hidden flex items-center justify-center border border-safenexBorder/50">
+          <video id="guardianVideoPlayer" class="w-full max-h-56 object-contain rounded-xl" controls playsinline></video>
+        </div>
+        <div class="flex items-center justify-between text-[10px] text-gray-400 pt-0.5">
+          <span class="flex items-center gap-1 text-gray-300">
+            <svg class="w-3.5 h-3.5 text-cyanAccent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/>
+            </svg>
+            Front camera & mic voice recording
+          </span>
+          <a id="guardianVideoDownload" href="#" download="safenex-emergency-video.webm" class="text-cyanAccent hover:underline flex items-center gap-1 font-bold">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            Download
+          </a>
+        </div>
+      </div>
+
       <!-- 1-Tap Actions for Guardian -->
       <div class="grid grid-cols-2 gap-2">
         <button onclick="callVictimPhone()" class="py-3 rounded-xl bg-cyanAccent text-safenexDark font-black text-xs flex items-center justify-center space-x-1.5 shadow hover:brightness-110 active:scale-95">
@@ -305,12 +335,15 @@
       <!-- TEST SIMULATION CONTROLS -->
       <div class="bg-safenexSurfaceVar/40 border border-safenexBorder/60 rounded-2xl p-3.5 space-y-2 text-center">
         <span class="text-[10px] font-extrabold tracking-wider text-gray-400 uppercase">Hardware & SOS Test Simulation</span>
-        <div class="grid grid-cols-2 gap-2 pt-1">
-          <button onclick="triggerEmergency('BUTTON')" class="py-2 px-3 rounded-xl border border-emergencyRed/50 bg-emergencyRed/10 text-emergencyRed text-xs font-bold flex items-center justify-center space-x-1.5 hover:bg-emergencyRed/20">
-            <span>⚡ SOS Button</span>
+        <div class="grid grid-cols-3 gap-1.5 pt-1">
+          <button onclick="triggerEmergency('BUTTON')" class="py-2 px-2 rounded-xl border border-emergencyRed/50 bg-emergencyRed/10 text-emergencyRed text-[11px] font-bold flex items-center justify-center space-x-1 hover:bg-emergencyRed/20">
+            <span>⚡ SOS</span>
           </button>
-          <button onclick="triggerEmergency('SHAKE')" class="py-2 px-3 rounded-xl border border-cyanAccent/50 bg-cyanAccent/10 text-cyanAccent text-xs font-bold flex items-center justify-center space-x-1.5 hover:bg-cyanAccent/20">
-            <span>📳 Shake Sensor</span>
+          <button onclick="triggerEmergency('SHAKE')" class="py-2 px-2 rounded-xl border border-cyanAccent/50 bg-cyanAccent/10 text-cyanAccent text-[11px] font-bold flex items-center justify-center space-x-1 hover:bg-cyanAccent/20">
+            <span>📳 Shake</span>
+          </button>
+          <button onclick="openVideoVoiceTestModal()" class="py-2 px-2 rounded-xl border border-safetyGreen/50 bg-safetyGreen/10 text-safetyGreen text-[11px] font-bold flex items-center justify-center space-x-1 hover:bg-safetyGreen/20">
+            <span>📹 Cloud Test</span>
           </button>
         </div>
       </div>
@@ -409,20 +442,62 @@
         </button>
       </div>
 
-      <!-- Video Evidence & Dual Snapshot Viewfinder -->
-      <div class="bg-safenexSurface border border-safenexBorder rounded-2xl p-3.5 space-y-2">
+      <!-- Video Evidence & Voice Blackbox Viewfinder -->
+      <div class="bg-safenexSurface border border-safenexBorder rounded-2xl p-3.5 space-y-2.5">
         <div class="flex items-center justify-between">
           <span class="text-xs font-bold text-white flex items-center gap-1.5">
             <span class="w-2.5 h-2.5 rounded-full bg-emergencyRed animate-ping"></span>
-            Video Evidence Recording
+            Video & Voice Evidence Blackbox
           </span>
           <span id="recTimerText" class="text-[10px] font-mono font-bold text-emergencyRed">REC 00:00</span>
         </div>
-        <div class="relative w-full h-36 rounded-xl bg-black overflow-hidden flex items-center justify-center">
+        
+        <!-- Live Video Viewfinder -->
+        <div class="relative w-full h-40 rounded-xl bg-black overflow-hidden flex items-center justify-center border border-safenexBorder/60">
           <video id="webcamVideo" class="w-full h-full object-cover" autoplay playsinline muted></video>
-          <div class="absolute top-2 left-2 px-2 py-0.5 rounded bg-red-600 text-white text-[9px] font-black tracking-widest uppercase">
-            EVIDENCE BLACKBOX
+          <div class="absolute top-2 left-2 px-2 py-0.5 rounded bg-emergencyRed/90 text-white text-[9px] font-black tracking-widest uppercase flex items-center gap-1 shadow">
+            <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+            CAMERA + VOICE ACTIVE
           </div>
+          <div id="videoRecMimeBadge" class="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-black/70 text-cyanAccent text-[8px] font-mono">
+            WEBM/OPUS
+          </div>
+        </div>
+
+        <!-- Real-Time Mic Voice Level VU Meter -->
+        <div class="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-safenexSurfaceVar border border-safenexBorder/40 text-[10px]">
+          <div class="flex items-center space-x-1.5 text-gray-300 font-medium">
+            <span id="micPulseDot" class="w-2 h-2 rounded-full bg-safetyGreen animate-pulse"></span>
+            <span>🎙️ Microphone Voice:</span>
+            <span id="micLevelLabel" class="text-safetyGreen font-mono font-bold">MONITORING</span>
+          </div>
+          <!-- Real-Time Audio Level Bar -->
+          <div class="w-28 h-2 bg-black/60 rounded-full overflow-hidden p-0.5 flex items-center">
+            <div id="micMeterFill" class="h-full bg-gradient-to-r from-safetyGreen via-warningOrange to-emergencyRed rounded-full transition-all duration-75" style="width: 15%"></div>
+          </div>
+        </div>
+
+        <!-- Supabase Cloud Video Sync Status -->
+        <div class="flex items-center justify-between px-1 text-[10px]">
+          <div class="flex items-center space-x-1.5 text-gray-300">
+            <svg class="w-3.5 h-3.5 text-cyanAccent animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24" id="videoSyncIcon">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            <span id="supabaseVideoStatusText">Syncing video & voice to Supabase...</span>
+          </div>
+          <button id="btnManualVideoUpload" onclick="manualSyncVideoToSupabase()" class="text-[9px] px-2 py-0.5 rounded bg-cyanAccent/15 text-cyanAccent font-bold hover:bg-cyanAccent/25 border border-cyanAccent/30">
+            SYNC NOW
+          </button>
+        </div>
+
+        <!-- Video Evidence Action Buttons (Preview / Download) -->
+        <div id="videoEvidenceActions" class="hidden grid grid-cols-2 gap-2 pt-1">
+          <button onclick="previewRecordedVideo()" class="py-1.5 px-2 rounded-lg bg-safenexSurfaceVar border border-safenexBorder text-white text-[10px] font-bold flex items-center justify-center space-x-1 hover:brightness-110">
+            <span>▶️ Play Recording</span>
+          </button>
+          <button onclick="downloadRecordedVideo()" class="py-1.5 px-2 rounded-lg bg-cyanAccent/15 border border-cyanAccent/30 text-cyanAccent text-[10px] font-bold flex items-center justify-center space-x-1 hover:brightness-110">
+            <span>⬇️ Download WebM</span>
+          </button>
         </div>
       </div>
 
@@ -590,6 +665,68 @@
       </div>
     </div>
 
+    <!-- 5. Video & Voice Cloud Test Modal -->
+    <div id="videoVoiceTestModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-5 hidden">
+      <div class="w-full max-w-sm bg-safenexSurface border-2 border-safetyGreen/40 rounded-3xl p-5 space-y-3.5 shadow-2xl">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-safetyGreen animate-ping"></span>
+            <h4 class="text-sm font-black text-white uppercase tracking-wider">Cloud Video & Voice Test</h4>
+          </div>
+          <button onclick="closeVideoVoiceTestModal()" class="text-gray-400 hover:text-white text-xs font-bold px-2 py-1">
+            ✕
+          </button>
+        </div>
+
+        <p class="text-[11px] text-gray-300">
+          Records a 5-second video with live microphone voice audio, then transmits directly to Supabase cloud table <code class="text-cyanAccent font-mono">emergency_events</code>.
+        </p>
+
+        <!-- Test Camera Preview / Playback Box -->
+        <div class="relative w-full h-44 rounded-2xl bg-black overflow-hidden flex items-center justify-center border border-safenexBorder/60">
+          <video id="testCamPreview" class="w-full h-full object-cover" autoplay playsinline muted></video>
+          <video id="testPlaybackVideo" class="w-full h-full object-contain hidden" controls playsinline></video>
+          
+          <div id="testRecStatusOverlay" class="absolute top-2 left-2 px-2 py-0.5 rounded bg-emergencyRed text-white text-[9px] font-black uppercase tracking-wider hidden">
+            🔴 RECORDING VOICE + VIDEO
+          </div>
+          <div id="testCountdownBadge" class="absolute bottom-2 right-2 px-2 py-1 rounded bg-black/80 text-cyanAccent text-xs font-mono font-bold hidden">
+            5s
+          </div>
+        </div>
+
+        <!-- Mic VU meter in Test Modal -->
+        <div class="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-safenexSurfaceVar border border-safenexBorder/40 text-[10px]">
+          <div class="flex items-center space-x-1.5 text-gray-300">
+            <span id="testMicDot" class="w-2 h-2 rounded-full bg-gray-500"></span>
+            <span>🎙️ Voice Mic:</span>
+            <span id="testMicLabel" class="text-cyanAccent font-mono font-bold">READY</span>
+          </div>
+          <div class="w-24 h-2 bg-black/60 rounded-full overflow-hidden p-0.5 flex items-center">
+            <div id="testMicMeterFill" class="h-full bg-gradient-to-r from-safetyGreen via-warningOrange to-emergencyRed rounded-full transition-all duration-75" style="width: 10%"></div>
+          </div>
+        </div>
+
+        <!-- Status Log Box -->
+        <div id="testStatusLogBox" class="p-2.5 rounded-xl bg-safenexDark/90 border border-safenexBorder/50 text-[10px] space-y-1">
+          <p id="testStatusMessage" class="text-gray-300">Tap below to test camera & microphone upload.</p>
+        </div>
+
+        <!-- Controls -->
+        <div class="space-y-2">
+          <button id="btnStartVideoVoiceTest" onclick="startVideoVoiceTest()" class="w-full py-3 rounded-xl bg-gradient-to-r from-safetyGreen to-emerald-500 text-safenexDark font-black text-xs uppercase tracking-wider shadow hover:brightness-110 active:scale-95 flex items-center justify-center space-x-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+            </svg>
+            <span>START 5-SECOND CLOUD TEST</span>
+          </button>
+          <button onclick="closeVideoVoiceTestModal()" class="w-full py-2 text-center text-xs text-gray-400 hover:text-white">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <!-- APPLICATION LOGIC SCRIPT -->
@@ -631,6 +768,22 @@
     let mediaStream = null;
     let videoTimer = null;
     let videoSeconds = 0;
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let videoUploadInterval = null;
+    let lastRecordedBlob = null;
+    let micAudioContext = null;
+    let micAnalyser = null;
+    let micAnimFrame = null;
+    let isUploadingVideo = false;
+
+    // Standalone video/voice test state
+    let testMediaStream = null;
+    let testMediaRecorder = null;
+    let testRecordedChunks = [];
+    let testMicAudioContext = null;
+    let testMicAnalyser = null;
+    let testMicAnimFrame = null;
 
     // Guardians
     let guardians = JSON.parse(localStorage.getItem('safenex_guardians') || 'null') || [
@@ -839,7 +992,7 @@
       emergencyActive = false;
       stopSiren();
       stopStrobe();
-      stopWebcamRecording();
+      await stopWebcamRecording();
       if (breadcrumbStreamInterval) clearInterval(breadcrumbStreamInterval);
       window.onbeforeunload = null;
 
@@ -960,6 +1113,26 @@
           }
           if (ev.latitude && ev.longitude) {
             document.getElementById('trackCoordsText').innerText = `${ev.latitude.toFixed(5)}° N, ${ev.longitude.toFixed(5)}° E`;
+          }
+
+          // Check for video & voice evidence
+          if (ev.video_url) {
+            const videoCard = document.getElementById('guardianVideoCard');
+            const videoPlayer = document.getElementById('guardianVideoPlayer');
+            const videoBadge = document.getElementById('guardianVideoBadge');
+            const videoDownload = document.getElementById('guardianVideoDownload');
+            if (videoCard && videoPlayer) {
+              videoCard.classList.remove('hidden');
+              if (videoPlayer.dataset.lastSrc !== ev.video_url) {
+                videoPlayer.dataset.lastSrc = ev.video_url;
+                videoPlayer.src = ev.video_url;
+                if (videoDownload) videoDownload.href = ev.video_url;
+                if (videoBadge) {
+                  videoBadge.innerText = 'CLOUD SAVED';
+                  videoBadge.className = 'text-[9px] font-mono px-2 py-0.5 rounded bg-safetyGreen/20 text-safetyGreen font-bold';
+                }
+              }
+            }
           }
         }
 
@@ -1186,32 +1359,444 @@
     }
 
     // ==========================================
-    // WEBCAM & VIDEO RECORDING
+    // WEBCAM & VIDEO + VOICE EVIDENCE RECORDING (SUPABASE INTEGRATED)
     // ==========================================
+    function getBestSupportedMimeType() {
+      const candidates = [
+        'video/webm;codecs=vp8,opus',
+        'video/webm;codecs=vp9,opus',
+        'video/webm',
+        'video/mp4;codecs=avc1,mp4a',
+        'video/mp4'
+      ];
+      for (const mime of candidates) {
+        if (window.MediaRecorder && MediaRecorder.isTypeSupported(mime)) {
+          return mime;
+        }
+      }
+      return '';
+    }
+
+    function initMicAudioVisualizer(stream, fillElementId, labelElementId, dotElementId) {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return null;
+        const ctx = new AudioCtx();
+        const source = ctx.createMediaStreamSource(stream);
+        const analyser = ctx.createAnalyser();
+        analyser.fftSize = 64;
+        source.connect(analyser);
+
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        const meterFill = document.getElementById(fillElementId);
+        const meterLabel = document.getElementById(labelElementId);
+        const dot = document.getElementById(dotElementId);
+
+        if (dot) {
+          dot.className = "w-2 h-2 rounded-full bg-safetyGreen animate-pulse";
+        }
+
+        let isRunning = true;
+        function checkLevel() {
+          if (!isRunning || !analyser) return;
+          analyser.getByteFrequencyData(dataArray);
+          let sum = 0;
+          for (let i = 0; i < dataArray.length; i++) {
+            sum += dataArray[i];
+          }
+          const avg = sum / dataArray.length;
+          const percent = Math.min(100, Math.max(5, Math.round((avg / 128) * 100)));
+          if (meterFill) meterFill.style.width = `${percent}%`;
+
+          if (meterLabel) {
+            if (percent > 35) {
+              meterLabel.innerText = "VOICE ACTIVE (LOUD)";
+              meterLabel.className = "text-emergencyRed font-mono font-bold animate-pulse";
+            } else if (percent > 14) {
+              meterLabel.innerText = "VOICE DETECTED";
+              meterLabel.className = "text-safetyGreen font-mono font-bold";
+            } else {
+              meterLabel.innerText = "MIC READY";
+              meterLabel.className = "text-cyanAccent font-mono font-bold";
+            }
+          }
+          requestAnimationFrame(checkLevel);
+        }
+
+        requestAnimationFrame(checkLevel);
+        return { ctx, analyser, stop: () => { isRunning = false; } };
+      } catch (e) {
+        console.warn("Could not init audio visualizer:", e);
+        return null;
+      }
+    }
+
     async function startWebcamRecording() {
       try {
-        mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: true });
-        const videoElem = document.getElementById('webcamVideo');
-        videoElem.srcObject = mediaStream;
+        // Request both high-quality video and clear voice audio
+        const constraints = {
+          video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 24, max: 30 } },
+          audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+        };
 
+        try {
+          mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+        } catch (streamErr) {
+          console.warn("Retrying media with basic video+audio:", streamErr);
+          mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        }
+
+        const videoElem = document.getElementById('webcamVideo');
+        if (videoElem) {
+          videoElem.srcObject = mediaStream;
+          videoElem.play().catch(e => console.log("Video preview error:", e));
+        }
+
+        // Start Mic Audio Visualizer for live voice feedback
+        const micViz = initMicAudioVisualizer(mediaStream, 'micMeterFill', 'micLevelLabel', 'micPulseDot');
+        if (micViz) {
+          micAudioContext = micViz.ctx;
+          micAnalyser = micViz.analyser;
+        }
+
+        // Initialize MediaRecorder for synchronized Video + Voice
+        const mimeType = getBestSupportedMimeType();
+        const badgeElem = document.getElementById('videoRecMimeBadge');
+        if (badgeElem && mimeType) {
+          badgeElem.innerText = mimeType.toUpperCase().includes('MP4') ? 'MP4/AAC' : 'WEBM/OPUS';
+        }
+
+        const recorderOptions = mimeType 
+          ? { mimeType, videoBitsPerSecond: 350000, audioBitsPerSecond: 64000 } 
+          : {};
+
+        recordedChunks = [];
+        try {
+          mediaRecorder = new MediaRecorder(mediaStream, recorderOptions);
+        } catch (recInitErr) {
+          console.warn("Falling back to default MediaRecorder options:", recInitErr);
+          mediaRecorder = new MediaRecorder(mediaStream);
+        }
+
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data && event.data.size > 0) {
+            recordedChunks.push(event.data);
+          }
+        };
+
+        mediaRecorder.start(1000); // 1-second chunks
+        console.log("🎥 MediaRecorder active (synchronized Video + Voice)");
+
+        // Timer
         videoSeconds = 0;
         if (videoTimer) clearInterval(videoTimer);
         videoTimer = setInterval(() => {
           videoSeconds++;
           const mins = Math.floor(videoSeconds / 60);
           const secs = videoSeconds % 60;
-          document.getElementById('recTimerText').innerText = `REC ${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+          const timerEl = document.getElementById('recTimerText');
+          if (timerEl) timerEl.innerText = `REC ${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
         }, 1000);
+
+        // Periodic cloud sync to Supabase:
+        // First snapshot at 8 seconds so early evidence is secured immediately,
+        // then repeated every 15 seconds.
+        if (videoUploadInterval) clearInterval(videoUploadInterval);
+        setTimeout(() => {
+          if (emergencyActive) uploadRecordingToSupabase(false);
+        }, 8000);
+
+        videoUploadInterval = setInterval(() => {
+          if (emergencyActive) uploadRecordingToSupabase(false);
+        }, 15000);
+
       } catch (e) {
-        console.warn("Webcam not accessible:", e);
+        console.warn("Webcam & mic access error:", e);
+        const statusEl = document.getElementById('supabaseVideoStatusText');
+        if (statusEl) statusEl.innerText = "Camera/Mic permission needed for blackbox";
       }
     }
 
-    function stopWebcamRecording() {
+    async function uploadRecordingToSupabase(isFinal = false) {
+      if (!currentEmergencyId) return;
+      if (!recordedChunks || recordedChunks.length === 0) return;
+      if (isUploadingVideo) return;
+
+      isUploadingVideo = true;
+      const statusText = document.getElementById('supabaseVideoStatusText');
+      const syncIcon = document.getElementById('videoSyncIcon');
+      if (statusText) statusText.innerText = isFinal ? "Finalizing & saving video..." : "Uploading video & voice to Supabase...";
+      if (syncIcon) syncIcon.classList.add('animate-spin');
+
+      try {
+        const mime = (mediaRecorder && mediaRecorder.mimeType) ? mediaRecorder.mimeType : 'video/webm';
+        const blob = new Blob(recordedChunks, { type: mime });
+        lastRecordedBlob = blob;
+
+        const reader = new FileReader();
+        const dataUrl = await new Promise((resolve, reject) => {
+          reader.onloadend = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+
+        const sizeKb = Math.round(blob.size / 1024);
+        console.log(`📡 Uploading ${sizeKb} KB video with voice to Supabase event ${currentEmergencyId}...`);
+
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/emergency_events?id=eq.${currentEmergencyId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({
+            video_url: dataUrl,
+            audio_url: dataUrl
+          })
+        });
+
+        if (res.ok) {
+          if (statusText) statusText.innerText = `☁️ Video & Voice Saved (${sizeKb} KB)`;
+          const actions = document.getElementById('videoEvidenceActions');
+          if (actions) actions.classList.remove('hidden');
+          console.log(`✅ Supabase video & voice synced successfully (${sizeKb} KB)!`);
+        } else {
+          if (statusText) statusText.innerText = `Upload status: HTTP ${res.status}`;
+          console.warn("Supabase video PATCH HTTP error:", res.status);
+        }
+      } catch (err) {
+        console.warn("Error uploading video to Supabase:", err);
+        if (statusText) statusText.innerText = "Error syncing video to Supabase";
+      } finally {
+        isUploadingVideo = false;
+        if (syncIcon) syncIcon.classList.remove('animate-spin');
+      }
+    }
+
+    async function manualSyncVideoToSupabase() {
+      if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.requestData();
+      }
+      await uploadRecordingToSupabase(false);
+    }
+
+    async function stopWebcamRecording() {
       if (videoTimer) clearInterval(videoTimer);
+      if (videoUploadInterval) clearInterval(videoUploadInterval);
+
+      if (micAudioContext) {
+        try { micAudioContext.close(); } catch(e){}
+        micAudioContext = null;
+      }
+
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        try {
+          mediaRecorder.requestData();
+          mediaRecorder.stop();
+        } catch(e) {}
+        console.log("MediaRecorder stopped. Uploading final video & voice to Supabase...");
+        await uploadRecordingToSupabase(true);
+      }
+
       if (mediaStream) {
         mediaStream.getTracks().forEach(t => t.stop());
         mediaStream = null;
+      }
+    }
+
+    function previewRecordedVideo() {
+      if (!lastRecordedBlob && recordedChunks.length === 0) {
+        alert("No recording available yet.");
+        return;
+      }
+      const mime = (mediaRecorder && mediaRecorder.mimeType) ? mediaRecorder.mimeType : 'video/webm';
+      const blob = lastRecordedBlob || new Blob(recordedChunks, { type: mime });
+      const url = URL.createObjectURL(blob);
+      const w = window.open("", "_blank");
+      if (w) {
+        w.document.write(`<html><head><title>SAFENEX Emergency Video Evidence</title><style>body{margin:0;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;color:#fff;font-family:sans-serif;}video{max-width:90%;max-height:80vh;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.8);}h2{margin-bottom:12px;color:#FF1744;}</style></head><body><h2>🚨 SAFENEX VIDEO & VOICE EVIDENCE</h2><video src="${url}" controls autoplay playsinline></video><p style="color:#aaa;margin-top:12px;">Recorded with front camera & synchronized microphone voice</p></body></html>`);
+      }
+    }
+
+    function downloadRecordedVideo() {
+      if (!lastRecordedBlob && recordedChunks.length === 0) {
+        alert("No recording available to download yet.");
+        return;
+      }
+      const mime = (mediaRecorder && mediaRecorder.mimeType) ? mediaRecorder.mimeType : 'video/webm';
+      const blob = lastRecordedBlob || new Blob(recordedChunks, { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `safenex-emergency-video-${Date.now()}.webm`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    // ==========================================
+    // STANDALONE VIDEO & VOICE TEST MODAL HANDLERS
+    // ==========================================
+    function openVideoVoiceTestModal() {
+      document.getElementById('videoVoiceTestModal').classList.remove('hidden');
+      document.getElementById('testCamPreview').classList.remove('hidden');
+      document.getElementById('testPlaybackVideo').classList.add('hidden');
+      document.getElementById('testRecStatusOverlay').classList.add('hidden');
+      document.getElementById('testCountdownBadge').classList.add('hidden');
+      document.getElementById('testStatusMessage').innerText = "Ready. Tap button below to record 5-sec video + voice.";
+      const btn = document.getElementById('btnStartVideoVoiceTest');
+      btn.disabled = false;
+      btn.innerHTML = `
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+        </svg>
+        <span>START 5-SECOND CLOUD TEST</span>
+      `;
+    }
+
+    function closeVideoVoiceTestModal() {
+      if (testMediaStream) {
+        testMediaStream.getTracks().forEach(t => t.stop());
+        testMediaStream = null;
+      }
+      if (testMicAudioContext) {
+        try { testMicAudioContext.close(); } catch(e){}
+        testMicAudioContext = null;
+      }
+      const playback = document.getElementById('testPlaybackVideo');
+      if (playback) { playback.pause(); playback.src = ""; }
+      document.getElementById('videoVoiceTestModal').classList.add('hidden');
+    }
+
+    async function startVideoVoiceTest() {
+      const btn = document.getElementById('btnStartVideoVoiceTest');
+      const msg = document.getElementById('testStatusMessage');
+      const overlay = document.getElementById('testRecStatusOverlay');
+      const countdown = document.getElementById('testCountdownBadge');
+      const preview = document.getElementById('testCamPreview');
+      const playback = document.getElementById('testPlaybackVideo');
+
+      btn.disabled = true;
+      msg.innerText = "Requesting camera & microphone access...";
+
+      try {
+        testMediaStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
+          audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+        });
+
+        preview.classList.remove('hidden');
+        playback.classList.add('hidden');
+        preview.srcObject = testMediaStream;
+        preview.play();
+
+        // Audio visualizer
+        const testViz = initMicAudioVisualizer(testMediaStream, 'testMicMeterFill', 'testMicLabel', 'testMicDot');
+        if (testViz) {
+          testMicAudioContext = testViz.ctx;
+          testMicAnalyser = testViz.analyser;
+        }
+
+        const mime = getBestSupportedMimeType();
+        testRecordedChunks = [];
+        testMediaRecorder = new MediaRecorder(testMediaStream, mime ? { mimeType: mime, videoBitsPerSecond: 350000, audioBitsPerSecond: 64000 } : {});
+
+        testMediaRecorder.ondataavailable = (e) => {
+          if (e.data && e.data.size > 0) testRecordedChunks.push(e.data);
+        };
+
+        testMediaRecorder.start();
+        overlay.classList.remove('hidden');
+        countdown.classList.remove('hidden');
+
+        let secondsLeft = 5;
+        countdown.innerText = `${secondsLeft}s`;
+        msg.innerText = "🔴 Speak now! Recording video and microphone audio...";
+
+        const timer = setInterval(async () => {
+          secondsLeft--;
+          if (secondsLeft > 0) {
+            countdown.innerText = `${secondsLeft}s`;
+          } else {
+            clearInterval(timer);
+            countdown.classList.add('hidden');
+            overlay.classList.add('hidden');
+            msg.innerText = "Processing & uploading recording to Supabase...";
+
+            testMediaRecorder.stop();
+            if (testMediaStream) {
+              testMediaStream.getTracks().forEach(t => t.stop());
+              testMediaStream = null;
+            }
+
+            // Wait a moment for chunks
+            setTimeout(async () => {
+              const testBlob = new Blob(testRecordedChunks, { type: mime || 'video/webm' });
+              const reader = new FileReader();
+              reader.onloadend = async () => {
+                const dataUrl = reader.result;
+                const sizeKb = Math.round(testBlob.size / 1024);
+
+                msg.innerText = `Transmitting ${sizeKb} KB video+voice to Supabase...`;
+
+                try {
+                  const res = await fetch(`${SUPABASE_URL}/rest/v1/emergency_events`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'apikey': SUPABASE_KEY,
+                      'Authorization': `Bearer ${SUPABASE_KEY}`,
+                      'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify({
+                      device_name: 'SAFENEX-WEB-TEST',
+                      trigger_source: 'VIDEO_VOICE_TEST',
+                      latitude: currentCoords.lat,
+                      longitude: currentCoords.lng,
+                      accuracy: currentCoords.accuracy,
+                      address: currentAddress || 'Test Location',
+                      status: 'RESOLVED',
+                      video_url: dataUrl,
+                      audio_url: dataUrl,
+                      resolved_at: new Date().toISOString()
+                    })
+                  });
+
+                  if (res.ok) {
+                    const data = await res.json();
+                    const newId = (data && data[0]) ? data[0].id : 'OK';
+                    msg.innerHTML = `
+                      <span class="text-safetyGreen font-bold">✅ SUCCESS!</span> Saved to Supabase <code class="text-cyanAccent font-mono">emergency_events</code>!
+                      <br/><span class="text-gray-400">Record ID: <span class="text-cyanAccent font-mono text-[9px]">${newId}</span> (${sizeKb} KB)</span>
+                    `;
+
+                    // Show playback
+                    preview.classList.add('hidden');
+                    playback.classList.remove('hidden');
+                    playback.src = dataUrl;
+                    playback.play().catch(e => console.log(e));
+
+                    btn.disabled = false;
+                    btn.innerHTML = "<span>RECORD ANOTHER TEST</span>";
+                  } else {
+                    msg.innerText = `Supabase upload error: HTTP ${res.status}`;
+                    btn.disabled = false;
+                  }
+                } catch (upErr) {
+                  msg.innerText = `Network/Upload error: ${upErr.message}`;
+                  btn.disabled = false;
+                }
+              };
+              reader.readAsDataURL(testBlob);
+            }, 500);
+          }
+        }, 1000);
+
+      } catch (err) {
+        msg.innerText = `Failed to access camera/mic: ${err.message}`;
+        btn.disabled = false;
       }
     }
 
