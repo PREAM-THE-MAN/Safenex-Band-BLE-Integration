@@ -1298,9 +1298,12 @@
     function shareWhatsAppLocation() {
       const primary = getPrimaryGuardian();
       const mapsUrl = `https://maps.google.com/?q=${currentCoords.lat},${currentCoords.lng}`;
+      const baseUrl = window.location.origin.includes('localhost') 
+        ? APP_PUBLIC_URL 
+        : `${window.location.origin}${window.location.pathname.replace(/\/$/, '')}`;
       const liveTrackingPortalUrl = currentEmergencyId 
-        ? `${APP_PUBLIC_URL}/?track=${currentEmergencyId}`
-        : `${APP_PUBLIC_URL}/?track=true`;
+        ? `${baseUrl}/?track=${currentEmergencyId}`
+        : `${baseUrl}/?track=true`;
 
       const videoLinkText = currentIncidentPublicVideoUrl 
         ? `\n\n🎥 *Incident Video Evidence (Supabase Storage):*\n${currentIncidentPublicVideoUrl}` 
