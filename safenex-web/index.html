@@ -705,7 +705,7 @@
         </div>
 
         <p class="text-[11px] text-gray-300">
-          Records a 5-second video with live microphone voice audio, then transmits directly to Supabase cloud table <code class="text-cyanAccent font-mono">emergency_events</code>.
+          Records 5 seconds of MP4 video and M4A voice audio, then uploads directly to Supabase Storage bucket <code class="text-cyanAccent font-mono">emergency-videos</code> with public URL format <code class="text-cyanAccent font-mono text-[10px]">incident_video_YYYYMMDD_HHMMSS.mp4</code>.
         </p>
 
         <!-- Test Camera Preview / Playback Box -->
@@ -784,13 +784,48 @@
     const GOOGLE_MAPS_KEY = "AIzaSyByC7_EfClKMEGaeVQI5Q5b4BWfL2zVac4";
     const SUPABASE_URL = "https://vrxyxwzvcinytsorauau.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZyeHl4d3p2Y2lueXRzb3JhdWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc5ODE4MDMsImV4cCI6MjEwMzU1NzgwM30.r0CbtU3H1Spx2CNQm5P3HWvhuzJApQG_rvFotq28f7o";
+    const STORAGE_BUCKET = "emergency-videos";
 
     const APP_PUBLIC_URL = "https://fancy-syrniki-12abab.netlify.app";
 
     let emergencyActive = false;
     let currentEmergencyId = null;
+    let currentIncidentVideoFileName = null;
+    let currentIncidentAudioFileName = null;
+    let currentIncidentPublicVideoUrl = null;
+    let currentIncidentPublicAudioUrl = null;
     let breadcrumbStreamInterval = null;
     let breadcrumbCount = 0;
+
+    function generateIncidentFileName(prefix = 'incident_video', ext = 'mp4') {
+      const d = new Date();
+      const YYYY = d.getFullYear();
+      const MM = String(d.getMonth() + 1).padStart(2, '0');
+      const DD = String(d.getDate()).padStart(2, '0');
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mm = String(d.getMinutes()).padStart(2, '0');
+      const ss = String(d.getSeconds()).padStart(2, '0');
+      return `${prefix}_${YYYY}${MM}${DD}_${hh}${mm}${ss}.${ext}`;
+    }
+
+    async function uploadBlobToSupabaseStorage(blob, fileName, contentType = 'video/mp4') {
+      const uploadUrl = `${SUPABASE_URL}/storage/v1/object/${STORAGE_BUCKET}/${fileName}`;
+      const res = await fetch(uploadUrl, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': contentType,
+          'x-upsert': 'true'
+        },
+        body: blob
+      });
+      if (!res.ok) {
+        const errText = await res.text().catch(() => '');
+        throw new Error(`Storage upload failed HTTP ${res.status}: ${errText}`);
+      }
+      return `${SUPABASE_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${fileName}`;
+    }
 
     let audioCtx = null;
     let sirenOsc = null;
@@ -955,6 +990,12 @@
       const eventBadge = document.getElementById('supabaseEventBadge');
       statusText.innerText = "Creating Supabase event record...";
 
+      // Generate exact public Supabase Storage object filenames & URLs for this incident
+      currentIncidentVideoFileName = generateIncidentFileName('incident_video', 'mp4');
+      currentIncidentAudioFileName = generateIncidentFileName('incident_audio', 'm4a');
+      currentIncidentPublicVideoUrl = `${SUPABASE_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${currentIncidentVideoFileName}`;
+      currentIncidentPublicAudioUrl = `${SUPABASE_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${currentIncidentAudioFileName}`;
+
       const eventPayload = {
         device_name: 'SAFENEX-WEB',
         trigger_source: source,
@@ -963,7 +1004,9 @@
         accuracy: currentCoords.accuracy,
         address: currentAddress,
         maps_url: `https://maps.google.com/?q=${currentCoords.lat},${currentCoords.lng}`,
-        status: 'ACTIVE'
+        status: 'ACTIVE',
+        video_url: currentIncidentPublicVideoUrl,
+        audio_url: currentIncidentPublicAudioUrl
       };
 
       try {
@@ -1182,7 +1225,12 @@
               if (videoPlayer.dataset.lastSrc !== ev.video_url) {
                 videoPlayer.dataset.lastSrc = ev.video_url;
                 videoPlayer.src = ev.video_url;
-                if (videoDownload) videoDownload.href = ev.video_url;
+                if (videoDownload) {
+                  videoDownload.href = ev.video_url;
+                  videoDownload.target = "_blank";
+                  const vName = ev.video_url.split('/').pop() || 'incident_video.mp4';
+                  videoDownload.download = vName;
+                }
               }
             }
 
@@ -1191,12 +1239,17 @@
               if (audioPlayer.dataset.lastSrc !== ev.audio_url) {
                 audioPlayer.dataset.lastSrc = ev.audio_url;
                 audioPlayer.src = ev.audio_url;
-                if (audioDownload) audioDownload.href = ev.audio_url;
+                if (audioDownload) {
+                  audioDownload.href = ev.audio_url;
+                  audioDownload.target = "_blank";
+                  const aName = ev.audio_url.split('/').pop() || 'incident_audio.m4a';
+                  audioDownload.download = aName;
+                }
               }
             }
 
             if (videoBadge) {
-              videoBadge.innerText = 'MP4 / M4A CLOUD SAVED';
+              videoBadge.innerText = 'SUPABASE STORAGE PUBLIC';
               videoBadge.className = 'text-[9px] font-mono px-2 py-0.5 rounded bg-safetyGreen/20 text-safetyGreen font-bold';
             }
           }
@@ -1249,7 +1302,11 @@
         ? `${APP_PUBLIC_URL}/?track=${currentEmergencyId}`
         : `${APP_PUBLIC_URL}/?track=true`;
 
-      const msg = `🚨 *SAFENEX EMERGENCY ALERT!*\nI need immediate assistance!\n\n📍 *My Location:*\n${currentAddress}\nCoordinates: ${currentCoords.lat.toFixed(5)}, ${currentCoords.lng.toFixed(5)}\nGoogle Map: ${mapsUrl}\n\n🌐 *Live Real-Time Satellite Tracking Portal:*\n${liveTrackingPortalUrl}\n\n⚡ Streamed live via SAFENEX & Supabase Cloud.`;
+      const videoLinkText = currentIncidentPublicVideoUrl 
+        ? `\n\n🎥 *Incident Video Evidence (Supabase Storage):*\n${currentIncidentPublicVideoUrl}` 
+        : '';
+
+      const msg = `🚨 *SAFENEX EMERGENCY ALERT!*\nI need immediate assistance!\n\n📍 *My Location:*\n${currentAddress}\nCoordinates: ${currentCoords.lat.toFixed(5)}, ${currentCoords.lng.toFixed(5)}\nGoogle Map: ${mapsUrl}\n\n🌐 *Live Real-Time Satellite Tracking Portal:*\n${liveTrackingPortalUrl}${videoLinkText}\n\n⚡ Streamed live via SAFENEX & Supabase Cloud.`;
       
       const phone = primary ? primary.phone.replace(/\D/g,'') : '';
       const url = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(msg)}`;
@@ -1625,10 +1682,19 @@
       isUploadingMedia = true;
       const statusText = document.getElementById('supabaseVideoStatusText');
       const syncIcon = document.getElementById('videoSyncIcon');
-      if (statusText) statusText.innerText = isFinal ? "Finalizing MP4 & M4A..." : "Uploading MP4 & M4A to Supabase...";
+      if (statusText) statusText.innerText = isFinal ? "Finalizing MP4 & M4A in Storage..." : "Uploading MP4 & M4A to Supabase Storage...";
       if (syncIcon) syncIcon.classList.add('animate-spin');
 
       try {
+        if (!currentIncidentVideoFileName) {
+          currentIncidentVideoFileName = generateIncidentFileName('incident_video', 'mp4');
+          currentIncidentPublicVideoUrl = `${SUPABASE_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${currentIncidentVideoFileName}`;
+        }
+        if (!currentIncidentAudioFileName) {
+          currentIncidentAudioFileName = generateIncidentFileName('incident_audio', 'm4a');
+          currentIncidentPublicAudioUrl = `${SUPABASE_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${currentIncidentAudioFileName}`;
+        }
+
         const vMime = (videoRecorder && videoRecorder.mimeType) ? videoRecorder.mimeType : 'video/mp4';
         const aMime = (audioRecorder && audioRecorder.mimeType) ? audioRecorder.mimeType : 'audio/mp4';
 
@@ -1641,12 +1707,21 @@
           lastRecordedAudioBlob = audioBlob;
         }
 
-        const videoDataUrl = await blobToDataUrl(videoBlob);
-        const audioDataUrl = audioBlob ? await blobToDataUrl(audioBlob) : videoDataUrl;
-
         const totalKb = Math.round((videoBlob.size + (audioBlob ? audioBlob.size : 0)) / 1024);
-        console.log(`📡 Uploading MP4 (${Math.round(videoBlob.size/1024)} KB) and M4A (${audioBlob ? Math.round(audioBlob.size/1024) : 0} KB) to Supabase...`);
+        console.log(`📡 Uploading MP4 (${Math.round(videoBlob.size/1024)} KB) and M4A (${audioBlob ? Math.round(audioBlob.size/1024) : 0} KB) directly to Supabase Storage bucket '${STORAGE_BUCKET}'...`);
 
+        // 1. Direct binary upload to Supabase Storage: emergency-videos/incident_video_YYYYMMDD_HHMMSS.mp4
+        const uploadedVideoUrl = await uploadBlobToSupabaseStorage(videoBlob, currentIncidentVideoFileName, 'video/mp4');
+        currentIncidentPublicVideoUrl = uploadedVideoUrl;
+
+        // 2. Direct binary upload to Supabase Storage: emergency-videos/incident_audio_YYYYMMDD_HHMMSS.m4a
+        let uploadedAudioUrl = uploadedVideoUrl;
+        if (audioBlob) {
+          uploadedAudioUrl = await uploadBlobToSupabaseStorage(audioBlob, currentIncidentAudioFileName, 'audio/mp4');
+          currentIncidentPublicAudioUrl = uploadedAudioUrl;
+        }
+
+        // 3. Patch Supabase database emergency_events with the public storage URLs
         const res = await fetch(`${SUPABASE_URL}/rest/v1/emergency_events?id=eq.${currentEmergencyId}`, {
           method: 'PATCH',
           headers: {
@@ -1656,23 +1731,25 @@
             'Prefer': 'return=minimal'
           },
           body: JSON.stringify({
-            video_url: videoDataUrl,
-            audio_url: audioDataUrl
+            video_url: currentIncidentPublicVideoUrl,
+            audio_url: currentIncidentPublicAudioUrl
           })
         });
 
         if (res.ok) {
-          if (statusText) statusText.innerText = `☁️ MP4 & M4A Saved (${totalKb} KB)`;
+          if (statusText) {
+            statusText.innerHTML = `☁️ Storage Saved (<a href="${currentIncidentPublicVideoUrl}" target="_blank" class="underline text-cyanAccent">${currentIncidentVideoFileName}</a> • ${totalKb} KB)`;
+          }
           const actions = document.getElementById('videoEvidenceActions');
           if (actions) actions.classList.remove('hidden');
-          console.log(`✅ Supabase MP4 video & M4A voice saved successfully (${totalKb} KB)!`);
+          console.log(`✅ Supabase Storage MP4 video & M4A voice saved successfully (${totalKb} KB)! URL:`, currentIncidentPublicVideoUrl);
         } else {
-          if (statusText) statusText.innerText = `Upload status: HTTP ${res.status}`;
+          if (statusText) statusText.innerText = `Storage saved, DB update status: HTTP ${res.status}`;
           console.warn("Supabase video PATCH HTTP error:", res.status);
         }
       } catch (err) {
-        console.warn("Error uploading MP4/M4A to Supabase:", err);
-        if (statusText) statusText.innerText = "Error syncing MP4/M4A to Supabase";
+        console.warn("Error uploading MP4/M4A to Supabase Storage:", err);
+        if (statusText) statusText.innerText = "Error syncing MP4/M4A to Supabase Storage";
       } finally {
         isUploadingMedia = false;
         if (syncIcon) syncIcon.classList.remove('animate-spin');
@@ -1715,20 +1792,30 @@
     }
 
     function previewRecordedVideo() {
-      if (!lastRecordedVideoBlob && recordedVideoChunks.length === 0) {
+      const targetUrl = currentIncidentPublicVideoUrl || (lastRecordedVideoBlob ? URL.createObjectURL(lastRecordedVideoBlob) : '');
+      if (!targetUrl && recordedVideoChunks.length === 0) {
         alert("No video recording available yet.");
         return;
       }
       const vMime = (videoRecorder && videoRecorder.mimeType) ? videoRecorder.mimeType : 'video/mp4';
-      const blob = lastRecordedVideoBlob || new Blob(recordedVideoChunks, { type: vMime });
-      const url = URL.createObjectURL(blob);
+      const playUrl = targetUrl || URL.createObjectURL(new Blob(recordedVideoChunks, { type: vMime }));
       const w = window.open("", "_blank");
       if (w) {
-        w.document.write(`<html><head><title>SAFENEX Emergency Video (MP4)</title><style>body{margin:0;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;color:#fff;font-family:sans-serif;}video{max-width:90%;max-height:80vh;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.8);}h2{margin-bottom:12px;color:#FF1744;}</style></head><body><h2>🚨 SAFENEX MP4 VIDEO & VOICE EVIDENCE</h2><video src="${url}" controls autoplay playsinline></video><p style="color:#aaa;margin-top:12px;">Recorded with front camera & synchronized microphone audio</p></body></html>`);
+        w.document.write(`<html><head><title>SAFENEX Emergency Video (MP4)</title><style>body{margin:0;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;color:#fff;font-family:sans-serif;}video{max-width:90%;max-height:80vh;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.8);}h2{margin-bottom:12px;color:#FF1744;}a{color:#00E5FF;text-decoration:none;margin-top:10px;font-size:12px;word-break:break-all;}</style></head><body><h2>🚨 SAFENEX MP4 VIDEO & VOICE EVIDENCE</h2><video src="${playUrl}" controls autoplay playsinline></video><p style="color:#aaa;margin-top:12px;">Public Supabase Storage link:</p><a href="${currentIncidentPublicVideoUrl || playUrl}" target="_blank">${currentIncidentPublicVideoUrl || playUrl}</a></body></html>`);
       }
     }
 
     function downloadRecordedVideo() {
+      if (currentIncidentPublicVideoUrl) {
+        const a = document.createElement('a');
+        a.href = currentIncidentPublicVideoUrl;
+        a.target = '_blank';
+        a.download = currentIncidentVideoFileName || 'safenex-emergency-video.mp4';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        return;
+      }
       if (!lastRecordedVideoBlob && recordedVideoChunks.length === 0) {
         alert("No MP4 recording available to download yet.");
         return;
@@ -1738,13 +1825,23 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `safenex-emergency-video-${Date.now()}.mp4`;
+      a.download = currentIncidentVideoFileName || `safenex-emergency-video-${Date.now()}.mp4`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
     }
 
     function downloadRecordedAudio() {
+      if (currentIncidentPublicAudioUrl) {
+        const a = document.createElement('a');
+        a.href = currentIncidentPublicAudioUrl;
+        a.target = '_blank';
+        a.download = currentIncidentAudioFileName || 'safenex-emergency-voice.m4a';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        return;
+      }
       if (!lastRecordedAudioBlob && recordedAudioChunks.length === 0) {
         alert("No M4A audio available to download yet.");
         return;
@@ -1754,7 +1851,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `safenex-emergency-voice-${Date.now()}.m4a`;
+      a.download = currentIncidentAudioFileName || `safenex-emergency-voice-${Date.now()}.m4a`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -1893,15 +1990,25 @@
               testVideoBlob = videoBlob;
               testAudioBlob = audioBlob;
 
-              const videoDataUrl = await blobToDataUrl(videoBlob);
-              const audioDataUrl = await blobToDataUrl(audioBlob);
-
               const vSizeKb = Math.round(videoBlob.size / 1024);
               const aSizeKb = Math.round(audioBlob.size / 1024);
 
-              msg.innerText = `Transmitting ${vSizeKb} KB MP4 video & ${aSizeKb} KB M4A audio to Supabase...`;
+              const testVideoFileName = generateIncidentFileName('incident_video', 'mp4');
+              const testAudioFileName = generateIncidentFileName('incident_audio', 'm4a');
+
+              msg.innerText = `Uploading ${vSizeKb} KB MP4 video & ${aSizeKb} KB M4A voice to Supabase Storage (${STORAGE_BUCKET})...`;
 
               try {
+                // 1. Direct binary upload to Supabase Storage: emergency-videos/incident_video_YYYYMMDD_HHMMSS.mp4
+                const publicTestVideoUrl = await uploadBlobToSupabaseStorage(videoBlob, testVideoFileName, 'video/mp4');
+
+                // 2. Direct binary upload to Supabase Storage: emergency-videos/incident_audio_YYYYMMDD_HHMMSS.m4a
+                let publicTestAudioUrl = publicTestVideoUrl;
+                if (testAudioChunks.length > 0) {
+                  publicTestAudioUrl = await uploadBlobToSupabaseStorage(audioBlob, testAudioFileName, 'audio/mp4');
+                }
+
+                // 3. Create record in emergency_events database table pointing to the public storage URLs
                 const res = await fetch(`${SUPABASE_URL}/rest/v1/emergency_events`, {
                   method: 'POST',
                   headers: {
@@ -1918,8 +2025,8 @@
                     accuracy: currentCoords.accuracy,
                     address: currentAddress || 'Test Location',
                     status: 'RESOLVED',
-                    video_url: videoDataUrl,
-                    audio_url: audioDataUrl,
+                    video_url: publicTestVideoUrl,
+                    audio_url: publicTestAudioUrl,
                     resolved_at: new Date().toISOString()
                   })
                 });
@@ -1928,33 +2035,47 @@
                   const data = await res.json();
                   const newId = (data && data[0]) ? data[0].id : 'OK';
                   msg.innerHTML = `
-                    <span class="text-safetyGreen font-bold">✅ SUCCESS!</span> Saved MP4 video & M4A voice to Supabase <code class="text-cyanAccent font-mono">emergency_events</code>!
-                    <br/><span class="text-gray-400">Record ID: <span class="text-cyanAccent font-mono text-[9px]">${newId}</span> (MP4: ${vSizeKb} KB • M4A: ${aSizeKb} KB)</span>
+                    <div class="space-y-1.5 text-left">
+                      <div class="flex items-center space-x-1.5">
+                        <span class="text-safetyGreen font-bold text-xs">✅ UPLOADED TO SUPABASE STORAGE!</span>
+                        <span class="text-[9px] px-1.5 py-0.5 rounded bg-cyanAccent/15 text-cyanAccent font-mono font-bold">${STORAGE_BUCKET}</span>
+                      </div>
+                      <div class="bg-black/60 p-2 rounded-lg border border-cyanAccent/30 text-[10px] font-mono break-all space-y-1">
+                        <div><span class="text-gray-400">MP4 Video URL:</span><br/><a href="${publicTestVideoUrl}" target="_blank" class="text-cyanAccent underline font-bold">${publicTestVideoUrl}</a></div>
+                        <div class="pt-0.5"><span class="text-gray-400">M4A Voice URL:</span><br/><a href="${publicTestAudioUrl}" target="_blank" class="text-safetyGreen underline font-bold">${publicTestAudioUrl}</a></div>
+                      </div>
+                      <div class="text-[9px] text-gray-400 font-mono">DB Record ID: ${newId} (MP4: ${vSizeKb} KB • M4A: ${aSizeKb} KB)</div>
+                    </div>
                   `;
 
-                  // Show Video Playback
+                  // Show Video Playback using the public Supabase storage URL
                   preview.classList.add('hidden');
                   playbackV.classList.remove('hidden');
-                  playbackV.src = videoDataUrl;
+                  playbackV.src = publicTestVideoUrl;
                   playbackV.play().catch(e => console.log(e));
 
-                  // Show Audio Playback
+                  // Show Audio Playback using the public Supabase storage URL
                   audioBox.classList.remove('hidden');
-                  playbackA.src = audioDataUrl;
+                  playbackA.src = publicTestAudioUrl;
 
-                  // Download Buttons
+                  // Download Buttons pointing directly to Supabase Storage files
                   downloadBox.classList.remove('hidden');
-                  downloadMp4.href = videoDataUrl;
-                  downloadM4a.href = audioDataUrl;
+                  downloadMp4.href = publicTestVideoUrl;
+                  downloadMp4.download = testVideoFileName;
+                  downloadMp4.target = "_blank";
+
+                  downloadM4a.href = publicTestAudioUrl;
+                  downloadM4a.download = testAudioFileName;
+                  downloadM4a.target = "_blank";
 
                   btn.disabled = false;
                   btn.innerHTML = "<span>RECORD ANOTHER TEST</span>";
                 } else {
-                  msg.innerText = `Supabase upload error: HTTP ${res.status}`;
+                  msg.innerText = `Supabase DB error: HTTP ${res.status}`;
                   btn.disabled = false;
                 }
               } catch (upErr) {
-                msg.innerText = `Network/Upload error: ${upErr.message}`;
+                msg.innerText = `Storage upload error: ${upErr.message}`;
                 btn.disabled = false;
               }
             }, 600);
